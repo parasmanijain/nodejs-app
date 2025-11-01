@@ -1,25 +1,27 @@
-const backdrop = document.querySelector('.backdrop') as HTMLElement | null;
-const sideDrawer = document.querySelector('.mobile-nav') as HTMLElement | null;
-const menuToggle = document.querySelector('#side-menu-toggle') as HTMLElement | null;
+const backdrop = document.querySelector(".backdrop") as HTMLElement | null;
+const sideDrawer = document.querySelector(".mobile-nav") as HTMLElement | null;
+const menuToggle = document.querySelector(
+  "#side-menu-toggle"
+) as HTMLElement | null;
 
-function backdropClickHandler(): void {
+const backdropClickHandler = (): void => {
   if (backdrop && sideDrawer) {
-    backdrop.style.display = 'none';
-    sideDrawer.classList.remove('open');
+    backdrop.style.display = "none";
+    sideDrawer.classList.remove("open");
   }
-}
+};
 
-function menuToggleClickHandler(): void {
+const menuToggleClickHandler = (): void => {
   if (backdrop && sideDrawer) {
-    backdrop.style.display = 'block';
-    sideDrawer.classList.add('open');
+    backdrop.style.display = "block";
+    sideDrawer.classList.add("open");
   }
-}
+};
 
 if (backdrop) {
-  backdrop.addEventListener('click', backdropClickHandler);
+  backdrop.addEventListener("click", backdropClickHandler);
 }
 
 if (menuToggle) {
-  menuToggle.addEventListener('click', menuToggleClickHandler);
+  menuToggle.addEventListener("click", menuToggleClickHandler);
 }

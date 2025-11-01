@@ -76,15 +76,12 @@ export class Cart {
         console.error("Error parsing cart file:", e);
         return;
       }
-
       const product = updatedCart.products.find((prod) => prod.id === id);
       if (!product) {
         // Product not in cart — nothing to delete
         return;
       }
-
       const productQty = product.qty;
-
       updatedCart.products = updatedCart.products.filter(
         (prod) => prod.id !== id
       );
