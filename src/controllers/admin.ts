@@ -35,6 +35,23 @@ export const getEditProduct = (req: Request, res: Response) => {
   });
 };
 
+export const postEditProduct = (req: Request, res: Response) => {
+  const prodId = req.body.productId;
+  const updatedTitle = req.body.title;
+  const updatedPrice = req.body.price;
+  const updatedImageUrl = req.body.imageUrl;
+  const updatedDesc = req.body.description;
+  const updatedProduct = new Product(
+    updatedTitle,
+    updatedImageUrl,
+    updatedDesc,
+    updatedPrice,
+    prodId
+  );
+  updatedProduct.save();
+  res.redirect("/admin/products");
+};
+
 export const getProducts = (_: Request, res: Response) => {
   Product.fetchAll((products) => {
     res.render("admin/products", {

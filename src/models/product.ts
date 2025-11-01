@@ -41,8 +41,10 @@ export class Product {
     title: string,
     imageUrl: string,
     description: string,
-    price: string
+    price: string,
+    id?: string
   ) {
+    this.id = id;
     this.title = title;
     this.imageUrl = imageUrl;
     this.description = description;
