@@ -1,14 +1,23 @@
-import express, { Response } from "express";
-import { getCart, getCheckout, getIndex, getOrders, getProducts } from "../controllers/shop";
+import express from "express";
+import {
+  getCart,
+  getCheckout,
+  getIndex,
+  getOrders,
+  getProduct,
+  getProducts,
+} from "../controllers/shop";
 
 export const router = express.Router();
 
-router.get('/', getIndex);
+router.get("/", getIndex);
 
-router.get('/products', getProducts);
+router.get("/products", getProducts);
 
-router.get('/cart', getCart);
+router.get("/products/:productId", getProduct);
 
-router.get('/orders', getOrders);
+router.get("/cart", getCart);
 
-router.get('/checkout', getCheckout);
+router.get("/orders", getOrders);
+
+router.get("/checkout", getCheckout);

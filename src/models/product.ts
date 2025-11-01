@@ -7,6 +7,7 @@ interface ProductData {
   imageUrl: string;
   description: string;
   price: string;
+  id?: string;
 }
 
 // Construct the path to the JSON file
@@ -35,6 +36,7 @@ export class Product {
   imageUrl: string;
   description: string;
   price: string;
+  id?: string;
   constructor(
     title: string,
     imageUrl: string,
@@ -48,6 +50,7 @@ export class Product {
   }
 
   save(): void {
+    this.id = Math.random().toString();
     getProductsFromFile((products: ProductData[]) => {
       products.push(this);
 
