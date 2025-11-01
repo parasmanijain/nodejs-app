@@ -111,4 +111,21 @@ export class Cart {
       });
     });
   }
+
+  static getCart(cb: (cart: CartData) => void): void {
+    fs.readFile(p, (err, fileContent) => {
+      if (err || !fileContent.length) {
+        cb({ products: [], totalPrice: 0 });
+        return;
+      }
+
+      try {
+        const cart = JSON.parse(fileContent.toString()) as CartData;
+        cb(cart);
+      } catch (e) {
+        console.error("Error parsing cart data:", e);
+        cb({ products: [], totalPrice: 0 });
+      }
+    });
+  }
 }
