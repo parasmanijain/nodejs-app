@@ -34,6 +34,7 @@ export class Cart {
       );
       const existingProduct = cart.products[existingProductIndex];
       let updatedProduct: CartProduct;
+
       // Add new product or increase quantity
       if (existingProduct) {
         updatedProduct = { ...existingProduct, qty: existingProduct.qty + 1 };
@@ -43,6 +44,7 @@ export class Cart {
         updatedProduct = { id, qty: 1 };
         cart.products = [...cart.products, updatedProduct];
       }
+
       cart.totalPrice = cart.totalPrice + +productPrice;
 
       // Ensure data directory exists before writing
@@ -55,6 +57,55 @@ export class Cart {
         fs.writeFile(p, JSON.stringify(cart, null, 2), (writeErr) => {
           if (writeErr) {
             console.error("Error saving cart:", writeErr);
+          }
+        });
+      });
+    });
+  }
+
+  static deleteProduct(id: string, productPrice: string): void {
+    fs.readFile(p, (err, fileContent) => {
+      if (err || !fileContent.length) {
+        return;
+      }
+
+      let updatedCart: CartData;
+      try {
+        updatedCart = JSON.parse(fileContent.toString()) as CartData;
+      } catch (e) {
+        console.error("Error parsing cart file:", e);
+        return;
+      }
+
+      const product = updatedCart.products.find((prod) => prod.id === id);
+      if (!product) {
+        // Product not in cart — nothing to delete
+        return;
+      }
+
+      const productQty = product.qty;
+
+      updatedCart.products = updatedCart.products.filter(
+        (prod) => prod.id !== id
+      );
+      updatedCart.totalPrice =
+        updatedCart.totalPrice - +productPrice * productQty;
+
+      // Ensure total price doesn't go negative
+      if (updatedCart.totalPrice < 0) {
+        updatedCart.totalPrice = 0;
+      }
+
+      // Ensure data directory exists before writing
+      fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+        if (dirErr) {
+          console.error("Error creating data directory:", dirErr);
+          return;
+        }
+
+        fs.writeFile(p, JSON.stringify(updatedCart, null, 2), (writeErr) => {
+          if (writeErr) {
+            console.error("Error deleting product from cart:", writeErr);
           }
         });
       });

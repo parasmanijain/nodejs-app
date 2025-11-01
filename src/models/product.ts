@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { Cart } from "./cart";
 
 // Define the interface for a product
 interface ProductData {
@@ -83,6 +84,26 @@ export class Product {
           }
           fs.writeFile(p, JSON.stringify(products, null, 2), (err) => {
             if (err) console.error("Error saving new product:", err);
+          });
+        });
+      }
+    });
+  }
+
+  static deleteById(id: string) {
+    getProductsFromFile((products) => {
+      const product = products.find((prod) => prod.id === id);
+      if (product) {
+        const updatedProducts = products.filter((prod) => prod.id !== id);
+        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+          if (dirErr) {
+            console.error("Error creating data directory:", dirErr);
+            return;
+          }
+          fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
+            if (!err) {
+              Cart.deleteProduct(id, product.price);
+            }
           });
         });
       }
