@@ -11,7 +11,7 @@ export const getAddProduct = (_: Request, res: Response) => {
 
 export const postAddProduct = (req: Request, res: Response) => {
   const { title, imageUrl, description, price } = req.body;
-  const product = new Product(title, imageUrl, description, price);
+  const product = new Product(null, title, imageUrl, description, price);
   product.save();
   res.redirect("/");
 };
@@ -36,17 +36,13 @@ export const getEditProduct = (req: Request, res: Response) => {
 };
 
 export const postEditProduct = (req: Request, res: Response) => {
-  const prodId = req.body.productId;
-  const updatedTitle = req.body.title;
-  const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
-  const updatedDesc = req.body.description;
+  const { productId, title, price, imageUrl, description } = req.body;
   const updatedProduct = new Product(
-    updatedTitle,
-    updatedImageUrl,
-    updatedDesc,
-    updatedPrice,
-    prodId
+    productId,
+    title,
+    imageUrl,
+    description,
+    price
   );
   updatedProduct.save();
   res.redirect("/admin/products");

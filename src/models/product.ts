@@ -7,7 +7,7 @@ interface ProductData {
   imageUrl: string;
   description: string;
   price: string;
-  id?: string;
+  id: string | null;
 }
 
 // Construct the path to the JSON file
@@ -32,17 +32,17 @@ const getProductsFromFile = (cb: (products: ProductData[]) => void): void => {
 
 // Product class
 export class Product {
+  id: string | null;
   title: string;
   imageUrl: string;
   description: string;
   price: string;
-  id?: string;
   constructor(
+    id: string | null,
     title: string,
     imageUrl: string,
     description: string,
-    price: string,
-    id?: string
+    price: string
   ) {
     this.id = id;
     this.title = title;
@@ -52,24 +52,40 @@ export class Product {
   }
 
   save(): void {
-    this.id = Math.random().toString();
     getProductsFromFile((products: ProductData[]) => {
-      products.push(this);
+      if (this.id) {
+        // Update existing product
+        const existingProductIndex = products.findIndex(
+          (prod) => prod.id === this.id
+        );
+        const updatedProducts = [...products];
+        updatedProducts[existingProductIndex] = this;
 
-      //  Ensure the "data" folder exists
-      fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
-        if (dirErr) {
-          console.error("Error creating data directory:", dirErr);
-          return;
-        }
-
-        // Now safely write the file
-        fs.writeFile(p, JSON.stringify(products, null, 2), (err) => {
-          if (err) {
-            console.error("Error saving product:", err);
+        // Ensure directory exists before writing
+        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+          if (dirErr) {
+            console.error("Error creating data directory:", dirErr);
+            return;
           }
+          fs.writeFile(p, JSON.stringify(updatedProducts, null, 2), (err) => {
+            if (err) console.error("Error updating product:", err);
+          });
         });
-      });
+      } else {
+        // Create new product
+        this.id = Math.random().toString();
+        products.push(this);
+
+        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+          if (dirErr) {
+            console.error("Error creating data directory:", dirErr);
+            return;
+          }
+          fs.writeFile(p, JSON.stringify(products, null, 2), (err) => {
+            if (err) console.error("Error saving new product:", err);
+          });
+        });
+      }
     });
   }
 
@@ -77,7 +93,7 @@ export class Product {
     getProductsFromFile(cb);
   }
 
-  static findById(id: string, cb: (_?: ProductData) => void) {
+  static findById(id: string, cb: (_?: ProductData) => void): void {
     getProductsFromFile((products) => {
       const product = products.find((p) => p.id === id);
       cb(product);
