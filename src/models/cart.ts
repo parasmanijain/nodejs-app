@@ -1,37 +1,63 @@
 import fs from "fs";
 import path from "path";
 
+// Define interfaces for cart data
+interface CartProduct {
+  id: string;
+  qty: number;
+}
+
+interface CartData {
+  products: CartProduct[];
+  totalPrice: number;
+}
+
 const dataDir = path.join(process.cwd(), "data");
 const p: string = path.join(dataDir, "cart.json");
 
 export class Cart {
-  static addProduct(id:string, productPrice:string) {
-    // Fetch the previous cart
+  static addProduct(id: string, productPrice: string): void {
     fs.readFile(p, (err, fileContent) => {
-      let cart = { products: [], totalPrice: 0 };
-      if (!err) {
-        cart = JSON.parse(fileContent.toString());
+      let cart: CartData = { products: [], totalPrice: 0 };
+
+      if (!err && fileContent.length) {
+        try {
+          cart = JSON.parse(fileContent.toString()) as CartData;
+        } catch (e) {
+          console.error("Error parsing cart file:", e);
+        }
       }
-      // Analyze the cart => Find existing product
+
+      // Find existing product
       const existingProductIndex = cart.products.findIndex(
-        prod => prod.id === id
+        (prod) => prod.id === id
       );
       const existingProduct = cart.products[existingProductIndex];
-      let updatedProduct;
-      // Add new product/ increase quantity
+      let updatedProduct: CartProduct;
+      // Add new product or increase quantity
       if (existingProduct) {
-        updatedProduct = { ...existingProduct };
-        updatedProduct.qty = updatedProduct.qty + 1;
+        updatedProduct = { ...existingProduct, qty: existingProduct.qty + 1 };
         cart.products = [...cart.products];
         cart.products[existingProductIndex] = updatedProduct;
       } else {
-        updatedProduct = { id: id, qty: 1 };
+        updatedProduct = { id, qty: 1 };
         cart.products = [...cart.products, updatedProduct];
       }
       cart.totalPrice = cart.totalPrice + +productPrice;
-      fs.writeFile(p, JSON.stringify(cart), err => {
-        console.log(err);
+
+      // Ensure data directory exists before writing
+      fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+        if (dirErr) {
+          console.error("Error creating data directory:", dirErr);
+          return;
+        }
+
+        fs.writeFile(p, JSON.stringify(cart, null, 2), (writeErr) => {
+          if (writeErr) {
+            console.error("Error saving cart:", writeErr);
+          }
+        });
       });
     });
   }
-};
+}
