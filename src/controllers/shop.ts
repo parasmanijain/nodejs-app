@@ -13,8 +13,8 @@ export const getProducts = (_: Request, res: Response) => {
 };
 
 export const getProduct = (req: Request, res: Response) => {
-  const prodId = req.params.productId;
-  Product.findById(prodId, (product) => {
+  const { productId } = req.params;
+  Product.findById(productId, (product) => {
     if (product) {
       res.render("shop/product-detail", {
         product,
@@ -57,20 +57,20 @@ export const getCart = (_: Request, res: Response) => {
 };
 
 export const postCart = (req: Request, res: Response) => {
-  const prodId = req.body.productId;
-  Product.findById(prodId, (product) => {
+  const { productId } = req.body;
+  Product.findById(productId, (product) => {
     if (product) {
-      Cart.addProduct(prodId, product.price);
+      Cart.addProduct(productId, product.price);
     }
   });
   res.redirect("/cart");
 };
 
 export const postCartDeleteProduct = (req: Request, res: Response) => {
-  const prodId = req.body.productId;
-  Product.findById(prodId, (product) => {
+  const { productId } = req.body;
+  Product.findById(productId, (product) => {
     if (product) {
-      Cart.deleteProduct(prodId, product.price);
+      Cart.deleteProduct(productId, product.price);
       res.redirect("/cart");
     }
   });

@@ -17,19 +17,19 @@ export const postAddProduct = (req: Request, res: Response) => {
 };
 
 export const getEditProduct = (req: Request, res: Response) => {
-  const editMode = req.query.edit;
-  if (!editMode) {
+  const { edit } = req.query;
+  if (!edit) {
     return res.redirect("/");
   }
-  const prodId = req.params.productId;
-  Product.findById(prodId, (product) => {
+  const { productId } = req.params;
+  Product.findById(productId, (product) => {
     if (!product) {
       return res.redirect("/");
     }
     res.render("admin/edit-product", {
       pageTitle: "Edit Product",
       path: "/admin/edit-product",
-      editing: editMode,
+      editing: edit,
       product: product,
     });
   });
@@ -59,7 +59,7 @@ export const getProducts = (_: Request, res: Response) => {
 };
 
 export const postDeleteProduct = (req: Request, res: Response) => {
-  const prodId = req.body.productId;
-  Product.deleteById(prodId);
+  const { productId } = req.body;
+  Product.deleteById(productId);
   res.redirect("/admin/products");
 };
