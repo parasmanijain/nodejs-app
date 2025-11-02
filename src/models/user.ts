@@ -2,11 +2,14 @@ import {
   DataTypes,
   HasManyCreateAssociationMixin,
   HasManyGetAssociationsMixin,
+  HasOneCreateAssociationMixin,
+  HasOneGetAssociationMixin,
   Model,
   Optional,
 } from "sequelize";
 import { sequelize } from "../util/database";
 import Product from "./product";
+import Cart from "./cart";
 
 interface UserAttributes {
   id: number;
@@ -26,6 +29,8 @@ class User
 
   public createProduct!: HasManyCreateAssociationMixin<Product>;
   public getProducts!: HasManyGetAssociationsMixin<Product>;
+  public getCart!: HasOneGetAssociationMixin<Cart>;
+  public createCart!: HasOneCreateAssociationMixin<Cart>;
 
   // optional timestamps if you use them
   public readonly createdAt!: Date;

@@ -1,5 +1,13 @@
-import { DataTypes, Model, Optional } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  Optional,
+  BelongsToManyAddAssociationMixin,
+  BelongsToManyGetAssociationsMixin,
+} from "sequelize";
 import { sequelize } from "../util/database";
+import Cart from "./cart";
+import CartItem from "./cart-item";
 
 interface ProductAttributes {
   id: number;
@@ -20,6 +28,13 @@ class Product
   public price!: number;
   public imageUrl!: string;
   public description!: string;
+
+  // Association mixins
+  public getCarts!: BelongsToManyGetAssociationsMixin<Cart>;
+  public addCart!: BelongsToManyAddAssociationMixin<Cart, number>;
+
+  // This is the crucial part: tell TS that cartItem exists
+  public cartItem?: CartItem; // optional, since not always loaded
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -51,7 +66,7 @@ Product.init(
     },
   },
   {
-    sequelize, // connection instance
+    sequelize,
     tableName: "products",
   }
 );

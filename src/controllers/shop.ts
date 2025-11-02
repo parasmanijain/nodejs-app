@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import { Cart } from "../models/cart";
+import { NextFunction, Request, Response } from "express";
 import Product from "../models/product";
+import Cart from "../models/cart";
 
 export const getProducts = (_: Request, res: Response) => {
   Product.findAll()
@@ -45,45 +45,91 @@ export const getIndex = (_: Request, res: Response) => {
     });
 };
 
-export const getCart = (_: Request, res: Response) => {
-  Cart.getCart((cart) => {
-    Product.fetchAll((products) => {
-      const cartProducts = [];
-      for (let product of products) {
-        const cartProductData = cart.products.find(
-          (prod) => prod.id === product.id
-        );
-        if (cartProductData) {
-          cartProducts.push({ productData: product, qty: cartProductData.qty });
-        }
-      }
-      res.render("shop/cart", {
-        path: "/cart",
-        pageTitle: "Your Cart",
-        products: cartProducts,
-      });
-    });
-  });
+export const getCart = (req: Request, res: Response) => {
+  if (req.user) {
+    req.user
+      .getCart()
+      .then((cart) => {
+        return cart
+          .getProducts()
+          .then((products) => {
+            res.render("shop/cart", {
+              path: "/cart",
+              pageTitle: "Your Cart",
+              products: products,
+            });
+          })
+          .catch((err) => console.log(err));
+      })
+      .catch((err) => console.log(err));
+  }
 };
 
-export const postCart = (req: Request, res: Response) => {
-  const { productId } = req.body;
-  Product.findById(productId, (product) => {
-    if (product) {
-      Cart.addProduct(productId, product.price);
+export const postCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const prodId: number = +req.body.productId;
+  let fetchedCart: typeof req.user extends { getCart: () => Promise<infer C> }
+    ? C
+    : any;
+  let newQuantity = 1;
+  try {
+    if (!req.user) {
+      return res.status(401).send("User not found");
     }
-  });
-  res.redirect("/cart");
+    // Get the user's cart
+    fetchedCart = await req.user.getCart();
+
+    // Check if the product is already in the cart
+    const productsInCart = await fetchedCart.getProducts({
+      where: { id: prodId },
+    });
+
+    let product: Product | null = null;
+
+    if (productsInCart.length > 0) {
+      product = productsInCart[0];
+      const oldQuantity: number = product?.cartItem?.quantity ?? 0;
+      newQuantity = oldQuantity + 1;
+    } else {
+      product = await Product.findByPk(prodId);
+    }
+
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+
+    // Add product to cart with quantity
+    await fetchedCart.addProduct(product, {
+      through: { quantity: newQuantity },
+    });
+
+    res.redirect("/cart");
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
 };
 
 export const postCartDeleteProduct = (req: Request, res: Response) => {
   const { productId } = req.body;
-  Product.findById(productId, (product) => {
-    if (product) {
-      Cart.deleteProduct(productId, product.price);
-      res.redirect("/cart");
-    }
-  });
+  if (req.user) {
+    req.user
+      .getCart()
+      .then((cart) => {
+        return cart.getProducts({ where: { id: productId } });
+      })
+      .then((products) => {
+        const product = products[0];
+        return product.cartItem?.destroy();
+      })
+      .then((result) => {
+        res.redirect("/cart");
+      })
+      .catch((err) => console.log(err));
+  }
 };
 
 export const getOrders = (_: Request, res: Response) => {
