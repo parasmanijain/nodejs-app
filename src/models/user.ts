@@ -10,6 +10,7 @@ import {
 import { sequelize } from "../util/database";
 import Product from "./product";
 import Cart from "./cart";
+import Order from "./order"; // ✅ import your Order model
 
 interface UserAttributes {
   id: number;
@@ -29,10 +30,14 @@ class User
 
   public createProduct!: HasManyCreateAssociationMixin<Product>;
   public getProducts!: HasManyGetAssociationsMixin<Product>;
+
   public getCart!: HasOneGetAssociationMixin<Cart>;
   public createCart!: HasOneCreateAssociationMixin<Cart>;
 
-  // optional timestamps if you use them
+  public getOrders!: HasManyGetAssociationsMixin<Order>;
+  public createOrder!: HasManyCreateAssociationMixin<Order>;
+
+  // Optional timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

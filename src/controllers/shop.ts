@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import Product from "../models/product";
 import Cart from "../models/cart";
+import Order from "../models/order";
+import CartItem from "../models/cart-item";
 
 export const getProducts = (_: Request, res: Response) => {
   Product.findAll()
@@ -132,11 +134,49 @@ export const postCartDeleteProduct = (req: Request, res: Response) => {
   }
 };
 
-export const getOrders = (_: Request, res: Response) => {
-  res.render("shop/orders", {
-    path: "/orders",
-    pageTitle: "Your Orders",
-  });
+export const postOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).send("User not found");
+    }
+    const fetchedCart: Cart = await req.user.getCart();
+    const products: (Product & { cartItem?: CartItem })[] =
+      await fetchedCart.getProducts();
+    const order: Order = await req.user.createOrder();
+    await order.addProducts(
+      products.map((product) => {
+        // attach quantity info to the pivot table (OrderItem)
+        (product as any).orderItem = {
+          quantity: product.cartItem?.quantity ?? 1,
+        };
+        return product;
+      })
+    );
+    await fetchedCart.setProducts(undefined);
+    res.redirect("/orders");
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+export const getOrders = (req: Request, res: Response) => {
+  if (req.user) {
+    req.user
+      .getOrders({ include: ["products"] })
+      .then((orders) => {
+        res.render("shop/orders", {
+          path: "/orders",
+          pageTitle: "Your Orders",
+          orders: orders,
+        });
+      })
+      .catch((err) => console.log(err));
+  }
 };
 
 export const getCheckout = (_: Request, res: Response) => {

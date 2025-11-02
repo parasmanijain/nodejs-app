@@ -2,25 +2,24 @@ import {
   DataTypes,
   Model,
   Optional,
+  BelongsToManyAddAssociationsMixin,
   BelongsToManyGetAssociationsMixin,
   BelongsToManyAddAssociationMixin,
-  BelongsToManyAddAssociationsMixin,
   BelongsToManySetAssociationsMixin,
   BelongsToManyRemoveAssociationMixin,
-  BelongsToManyRemoveAssociationsMixin,
 } from "sequelize";
 import { sequelize } from "../util/database";
-import Product from "./product";
+import Product from "./product"; // Import Product model
 
-interface CartAttributes {
+interface OrderAttributes {
   id: number;
 }
 
-interface CartCreationAttributes extends Optional<CartAttributes, "id"> {}
+interface OrderCreationAttributes extends Optional<OrderAttributes, "id"> {}
 
-class Cart
-  extends Model<CartAttributes, CartCreationAttributes>
-  implements CartAttributes
+class Order
+  extends Model<OrderAttributes, OrderCreationAttributes>
+  implements OrderAttributes
 {
   public id!: number;
 
@@ -29,14 +28,13 @@ class Cart
   public addProducts!: BelongsToManyAddAssociationsMixin<Product, number>;
   public setProducts!: BelongsToManySetAssociationsMixin<Product, number>;
   public removeProduct!: BelongsToManyRemoveAssociationMixin<Product, number>;
-  public removeProducts!: BelongsToManyRemoveAssociationsMixin<Product, number>;
 
-  // optional timestamps (if you have them enabled)
+  // optional timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
 
-Cart.init(
+Order.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -47,8 +45,8 @@ Cart.init(
   },
   {
     sequelize,
-    tableName: "carts",
+    tableName: "orders",
   }
 );
 
-export default Cart;
+export default Order;

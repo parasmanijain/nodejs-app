@@ -10,6 +10,8 @@ import Product from "./models/product";
 import User from "./models/user";
 import Cart from "./models/cart";
 import CartItem from "./models/cart-item";
+import Order from "./models/order";
+import OrderItem from "./models/order-item";
 
 const app = express();
 app.set("view engine", "ejs");
@@ -38,6 +40,9 @@ User.hasOne(Cart);
 Cart.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Product, { through: OrderItem });
 
 sequelize
   .sync({ force: true })
