@@ -1,123 +1,59 @@
-import fs from "fs";
-import path from "path";
-import { Cart } from "./cart";
+import { DataTypes, Model, Optional } from "sequelize";
+import { sequelize } from "../util/database";
 
-// Define the interface for a product
-interface ProductData {
+interface ProductAttributes {
+  id: number;
   title: string;
+  price: number;
   imageUrl: string;
   description: string;
-  price: string;
-  id: string | null;
 }
 
-// Construct the path to the JSON file
-const dataDir = path.join(process.cwd(), "data");
-const p: string = path.join(dataDir, "products.json");
+interface ProductCreationAttributes extends Optional<ProductAttributes, "id"> {}
 
-// Utility function to get products from file
-const getProductsFromFile = (cb: (products: ProductData[]) => void): void => {
-  fs.readFile(p, (err, fileContent) => {
-    if (err || !fileContent.length) {
-      cb([]);
-    } else {
-      try {
-        const data: ProductData[] = JSON.parse(fileContent.toString());
-        cb(data);
-      } catch (e) {
-        cb([]);
-      }
-    }
-  });
-};
+class Product
+  extends Model<ProductAttributes, ProductCreationAttributes>
+  implements ProductAttributes
+{
+  public id!: number;
+  public title!: string;
+  public price!: number;
+  public imageUrl!: string;
+  public description!: string;
 
-// Product class
-export class Product {
-  id: string | null;
-  title: string;
-  imageUrl: string;
-  description: string;
-  price: string;
-  constructor(
-    id: string | null,
-    title: string,
-    imageUrl: string,
-    description: string,
-    price: string
-  ) {
-    this.id = id;
-    this.title = title;
-    this.imageUrl = imageUrl;
-    this.description = description;
-    this.price = price;
-  }
-
-  save(): void {
-    getProductsFromFile((products: ProductData[]) => {
-      if (this.id) {
-        // Update existing product
-        const existingProductIndex = products.findIndex(
-          (prod) => prod.id === this.id
-        );
-        const updatedProducts = [...products];
-        updatedProducts[existingProductIndex] = this;
-
-        // Ensure directory exists before writing
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
-          if (dirErr) {
-            console.error("Error creating data directory:", dirErr);
-            return;
-          }
-          fs.writeFile(p, JSON.stringify(updatedProducts, null, 2), (err) => {
-            if (err) console.error("Error updating product:", err);
-          });
-        });
-      } else {
-        // Create new product
-        this.id = Math.random().toString();
-        products.push(this);
-
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
-          if (dirErr) {
-            console.error("Error creating data directory:", dirErr);
-            return;
-          }
-          fs.writeFile(p, JSON.stringify(products, null, 2), (err) => {
-            if (err) console.error("Error saving new product:", err);
-          });
-        });
-      }
-    });
-  }
-
-  static deleteById(id: string) {
-    getProductsFromFile((products) => {
-      const product = products.find((prod) => prod.id === id);
-      if (product) {
-        const updatedProducts = products.filter((prod) => prod.id !== id);
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
-          if (dirErr) {
-            console.error("Error creating data directory:", dirErr);
-            return;
-          }
-          fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
-            if (!err) {
-              Cart.deleteProduct(id, product.price);
-            }
-          });
-        });
-      }
-    });
-  }
-
-  static fetchAll(cb: (products: ProductData[]) => void): void {
-    getProductsFromFile(cb);
-  }
-
-  static findById(id: string, cb: (_?: ProductData) => void): void {
-    getProductsFromFile((products) => {
-      const product = products.find((p) => p.id === id);
-      cb(product);
-    });
-  }
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
+
+Product.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      allowNull: false,
+      primaryKey: true,
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    price: {
+      type: DataTypes.DOUBLE,
+      allowNull: false,
+    },
+    imageUrl: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize, // connection instance
+    tableName: "products",
+  }
+);
+
+export default Product;
