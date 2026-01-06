@@ -1,16 +1,14 @@
-const path = require('path');
+import {Router} from 'express';
 
-const express = require('express');
+import { getIndex, getProducts, getProduct } from '../controllers/shop';
 
-const shopController = require('../controllers/shop');
+const router = Router();
 
-const router = express.Router();
+router.get('/', getIndex);
 
-router.get('/', shopController.getIndex);
+router.get('/products', getProducts);
 
-router.get('/products', shopController.getProducts);
-
-router.get('/products/:productId', shopController.getProduct);
+router.get('/products/:productId', getProduct);
 
 // router.get('/cart', shopController.getCart);
 
@@ -22,4 +20,4 @@ router.get('/products/:productId', shopController.getProduct);
 
 // router.get('/orders', shopController.getOrders);
 
-module.exports = router;
+export default router;

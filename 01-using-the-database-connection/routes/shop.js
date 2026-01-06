@@ -1,25 +1,31 @@
-const path = require('path');
+import { Router } from "express";
+import {
+  getIndex,
+  getProducts,
+  getProduct,
+  getCart,
+  postCart,
+  postCartDeleteProduct,
+  postOrder,
+  getOrders,
+} from "../controllers/shop";
 
-const express = require('express');
+const router = Router();
 
-const shopController = require('../controllers/shop');
+router.get("/", getIndex);
 
-const router = express.Router();
+router.get("/products", getProducts);
 
-router.get('/', shopController.getIndex);
+router.get("/products/:productId", getProduct);
 
-router.get('/products', shopController.getProducts);
+router.get("/cart", getCart);
 
-router.get('/products/:productId', shopController.getProduct);
+router.post("/cart", postCart);
 
-router.get('/cart', shopController.getCart);
+router.post("/cart-delete-item", postCartDeleteProduct);
 
-router.post('/cart', shopController.postCart);
+router.post("/create-order", postOrder);
 
-router.post('/cart-delete-item', shopController.postCartDeleteProduct);
+router.get("/orders", getOrders);
 
-router.post('/create-order', shopController.postOrder);
-
-router.get('/orders', shopController.getOrders);
-
-module.exports = router;
+export default router;
