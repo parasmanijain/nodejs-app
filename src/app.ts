@@ -1,5 +1,9 @@
-import express, { NextFunction, Request } from "express";
-import bodyParser from "body-parser";
+import express, {
+  static as express_static,
+  urlencoded,
+  NextFunction,
+  Request,
+} from "express";
 import path from "path";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -17,8 +21,8 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(urlencoded({ extended: false }));
+app.use(express_static(path.join(__dirname, "public")));
 
 app.use((req: Request, _, next: NextFunction) => {
   User.findByPk(1)
@@ -55,11 +59,11 @@ sequelize
     }
     return user;
   })
-   .then(user => {
+  .then((user) => {
     // console.log(user);
     return user.createCart();
   })
-  .then(cart => {
+  .then((cart) => {
     app.listen(3000);
   })
   .catch((err) => {
