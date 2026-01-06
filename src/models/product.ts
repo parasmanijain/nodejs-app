@@ -1,5 +1,5 @@
 import fs from "fs";
-import path from "path";
+import { join } from "path";
 import { Cart } from "./cart";
 
 // Define the interface for a product
@@ -12,8 +12,8 @@ interface ProductData {
 }
 
 // Construct the path to the JSON file
-const dataDir = path.join(process.cwd(), "data");
-const p: string = path.join(dataDir, "products.json");
+const dataDir = join(process.cwd(), "data");
+const p: string = join(dataDir, "products.json");
 
 // Utility function to get products from file
 const getProductsFromFile = (cb: (products: ProductData[]) => void): void => {

@@ -1,5 +1,5 @@
 import fs from "fs";
-import path from "path";
+import { join } from "path";
 
 // Define interfaces for cart data
 interface CartProduct {
@@ -12,8 +12,8 @@ interface CartData {
   totalPrice: number;
 }
 
-const dataDir = path.join(process.cwd(), "data");
-const p: string = path.join(dataDir, "cart.json");
+const dataDir = join(process.cwd(), "data");
+const p: string = join(dataDir, "cart.json");
 
 export class Cart {
   static addProduct(id: string, productPrice: string): void {
