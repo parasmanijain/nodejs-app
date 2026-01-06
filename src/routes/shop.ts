@@ -1,9 +1,9 @@
-import express, { Response } from "express";
-import path from "path";
+import { Router, Response } from "express";
+import { join } from "path";
 import { viewsPath } from "../util/path";
 
-export const router = express.Router();
+export const router = Router();
 
 router.get("/", (_, res: Response) => {
-  res.sendFile(path.join(viewsPath, "shop.html"));
+  res.sendFile(join(viewsPath, "shop.html"));
 });
