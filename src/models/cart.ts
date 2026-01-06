@@ -1,4 +1,4 @@
-import fs from "fs";
+import { mkdir, readFile, writeFile } from "fs";
 import { join } from "path";
 
 // Define interfaces for cart data
@@ -17,7 +17,7 @@ const p: string = join(dataDir, "cart.json");
 
 export class Cart {
   static addProduct(id: string, productPrice: string): void {
-    fs.readFile(p, (err, fileContent) => {
+    readFile(p, (err, fileContent) => {
       let cart: CartData = { products: [], totalPrice: 0 };
 
       if (!err && fileContent.length) {
@@ -48,13 +48,13 @@ export class Cart {
       cart.totalPrice = cart.totalPrice + +productPrice;
 
       // Ensure data directory exists before writing
-      fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+      mkdir(dataDir, { recursive: true }, (dirErr) => {
         if (dirErr) {
           console.error("Error creating data directory:", dirErr);
           return;
         }
 
-        fs.writeFile(p, JSON.stringify(cart, null, 2), (writeErr) => {
+        writeFile(p, JSON.stringify(cart, null, 2), (writeErr) => {
           if (writeErr) {
             console.error("Error saving cart:", writeErr);
           }
@@ -64,7 +64,7 @@ export class Cart {
   }
 
   static deleteProduct(id: string, productPrice: string): void {
-    fs.readFile(p, (err, fileContent) => {
+    readFile(p, (err, fileContent) => {
       if (err || !fileContent.length) {
         return;
       }
@@ -94,13 +94,13 @@ export class Cart {
       }
 
       // Ensure data directory exists before writing
-      fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+      mkdir(dataDir, { recursive: true }, (dirErr) => {
         if (dirErr) {
           console.error("Error creating data directory:", dirErr);
           return;
         }
 
-        fs.writeFile(p, JSON.stringify(updatedCart, null, 2), (writeErr) => {
+        writeFile(p, JSON.stringify(updatedCart, null, 2), (writeErr) => {
           if (writeErr) {
             console.error("Error deleting product from cart:", writeErr);
           }
@@ -110,7 +110,7 @@ export class Cart {
   }
 
   static getCart(cb: (cart: CartData) => void): void {
-    fs.readFile(p, (err, fileContent) => {
+    readFile(p, (err, fileContent) => {
       if (err || !fileContent.length) {
         cb({ products: [], totalPrice: 0 });
         return;

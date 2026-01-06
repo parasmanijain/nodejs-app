@@ -1,4 +1,4 @@
-import fs from "fs";
+import { mkdir, readFile, writeFile } from "fs";
 import { join } from "path";
 import { Cart } from "./cart";
 
@@ -17,7 +17,7 @@ const p: string = join(dataDir, "products.json");
 
 // Utility function to get products from file
 const getProductsFromFile = (cb: (products: ProductData[]) => void): void => {
-  fs.readFile(p, (err, fileContent) => {
+  readFile(p, (err, fileContent) => {
     if (err || !fileContent.length) {
       cb([]);
     } else {
@@ -63,12 +63,12 @@ export class Product {
         updatedProducts[existingProductIndex] = this;
 
         // Ensure directory exists before writing
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+        mkdir(dataDir, { recursive: true }, (dirErr) => {
           if (dirErr) {
             console.error("Error creating data directory:", dirErr);
             return;
           }
-          fs.writeFile(p, JSON.stringify(updatedProducts, null, 2), (err) => {
+          writeFile(p, JSON.stringify(updatedProducts, null, 2), (err) => {
             if (err) console.error("Error updating product:", err);
           });
         });
@@ -77,12 +77,12 @@ export class Product {
         this.id = Math.random().toString();
         products.push(this);
 
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+        mkdir(dataDir, { recursive: true }, (dirErr) => {
           if (dirErr) {
             console.error("Error creating data directory:", dirErr);
             return;
           }
-          fs.writeFile(p, JSON.stringify(products, null, 2), (err) => {
+          writeFile(p, JSON.stringify(products, null, 2), (err) => {
             if (err) console.error("Error saving new product:", err);
           });
         });
@@ -95,12 +95,12 @@ export class Product {
       const product = products.find((prod) => prod.id === id);
       if (product) {
         const updatedProducts = products.filter((prod) => prod.id !== id);
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
+        mkdir(dataDir, { recursive: true }, (dirErr) => {
           if (dirErr) {
             console.error("Error creating data directory:", dirErr);
             return;
           }
-          fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
+          writeFile(p, JSON.stringify(updatedProducts), (err) => {
             if (!err) {
               Cart.deleteProduct(id, product.price);
             }
