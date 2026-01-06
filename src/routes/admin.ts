@@ -1,6 +1,6 @@
-import express, { Request, Response } from "express";
+import { Router, Request, Response } from "express";
 
-export const router = express.Router();
+export const router = Router();
 
 export let products: Array<Record<string, any>> = [];
 

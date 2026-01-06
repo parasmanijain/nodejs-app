@@ -1,6 +1,9 @@
-import express, { Response } from "express";
-import bodyParser from "body-parser";
-import path from "path";
+import express, {
+  static as express_static,
+  urlencoded,
+  Response,
+} from "express";
+import { join } from "path";
 import { engine } from "express-handlebars";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -10,16 +13,16 @@ const app = express();
 app.engine(
   "hbs",
   engine({
-    layoutsDir: path.join(__dirname, "views", "layouts"),
+    layoutsDir: join(__dirname, "views", "layouts"),
     defaultLayout: "main-layout",
     extname: "hbs",
   })
 );
 app.set("view engine", "hbs");
-app.set("views", path.join(__dirname, "views"));
+app.set("views", join(__dirname, "views"));
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(urlencoded({ extended: false }));
+app.use(express_static(join(__dirname, "public")));
 
 app.use(shopRoutes);
 app.use("/admin", adminRoutes);
