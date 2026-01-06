@@ -4,7 +4,7 @@ import express, {
   NextFunction,
   Request,
 } from "express";
-import path from "path";
+import { join } from "path";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
 import { viewsPath } from "./util/path";
@@ -22,7 +22,7 @@ app.set("view engine", "ejs");
 app.set("views", viewsPath);
 
 app.use(urlencoded({ extended: false }));
-app.use(express_static(path.join(__dirname, "public")));
+app.use(express_static(join(__dirname, "public")));
 
 app.use((req: Request, _, next: NextFunction) => {
   User.findByPk(1)
