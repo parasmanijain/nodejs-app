@@ -9,7 +9,6 @@ import { router as shopRoutes } from "./routes/shop";
 import { viewsPath } from "./util/path";
 
 const app = express();
-app.set("view engine", "pug");
 app.set("views", join(__dirname, "views"));
 
 app.use(urlencoded({ extended: false }));
