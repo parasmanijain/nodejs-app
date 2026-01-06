@@ -1,10 +1,7 @@
-const path = require('path');
-
-const express = require('express');
-const bodyParser = require('body-parser');
-
-const errorController = require('./controllers/error');
-const mongoConnect = require('./util/database');
+import { join } from 'path';
+import express, { urlencoded, static as express_static } from 'express';
+import { get404 } from './controllers/error';
+import mongoConnect from './util/database';
 
 const app = express();
 
@@ -14,8 +11,8 @@ app.set('views', 'views');
 // const adminRoutes = require('./routes/admin');
 // const shopRoutes = require('./routes/shop');
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(urlencoded({ extended: false }));
+app.use(express_static(join(__dirname, 'public')));
 
 app.use((req, res, next) => {
   // User.findById(1)
@@ -29,7 +26,7 @@ app.use((req, res, next) => {
 // app.use('/admin', adminRoutes);
 // app.use(shopRoutes);
 
-app.use(errorController.get404);
+app.use(get404);
 
 mongoConnect(client => {
   console.log(client);
