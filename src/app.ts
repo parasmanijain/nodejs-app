@@ -3,16 +3,16 @@ import express, {
   urlencoded,
   Response,
 } from "express";
-import path from "path";
+import { join } from "path";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
 
 const app = express();
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set("views", join(__dirname, "views"));
 
 app.use(urlencoded({ extended: false }));
-app.use(express_static(path.join(__dirname, "public")));
+app.use(express_static(join(__dirname, "public")));
 
 app.use(shopRoutes);
 app.use("/admin", adminRoutes);
