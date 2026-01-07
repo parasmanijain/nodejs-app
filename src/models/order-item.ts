@@ -6,7 +6,8 @@ interface OrderItemAttributes {
   quantity: number;
 }
 
-interface OrderItemCreationAttributes extends Optional<OrderItemAttributes, "id"> {}
+interface OrderItemCreationAttributes
+  extends Optional<OrderItemAttributes, "id"> {}
 
 class OrderItem
   extends Model<OrderItemAttributes, OrderItemCreationAttributes>
@@ -14,10 +15,6 @@ class OrderItem
 {
   public id!: number;
   public quantity!: number;
-
-  // optional timestamps
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
 }
 
 OrderItem.init(
@@ -35,7 +32,8 @@ OrderItem.init(
   },
   {
     sequelize,
-    tableName: "order_items",
+    modelName: "orderItem",
+    timestamps: false,
   }
 );
 

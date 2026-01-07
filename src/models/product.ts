@@ -35,9 +35,6 @@ class Product
 
   // This is the crucial part: tell TS that cartItem exists
   public cartItem?: CartItem; // optional, since not always loaded
-
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
 }
 
 Product.init(
@@ -67,7 +64,8 @@ Product.init(
   },
   {
     sequelize,
-    tableName: "products",
+    modelName: "product",
+    timestamps: false,
   }
 );
 

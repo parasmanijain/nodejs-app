@@ -3,7 +3,7 @@ import { sequelize } from "../util/database";
 
 interface CartItemAttributes {
   id: number;
-  quantity: number;
+  quantity?: number;
 }
 
 interface CartItemCreationAttributes
@@ -14,11 +14,7 @@ class CartItem
   implements CartItemAttributes
 {
   public id!: number;
-  public quantity!: number;
-
-  // Optional timestamps if enabled in Sequelize config
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  public quantity?: number;
 }
 
 CartItem.init(
@@ -31,12 +27,13 @@ CartItem.init(
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {
     sequelize,
-    tableName: "cart_items",
+    modelName: "cartItem",
+    timestamps: false,
   }
 );
 

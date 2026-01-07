@@ -36,10 +36,6 @@ class User
 
   public getOrders!: HasManyGetAssociationsMixin<Order>;
   public createOrder!: HasManyCreateAssociationMixin<Order>;
-
-  // Optional timestamps
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
 }
 
 User.init(
@@ -61,7 +57,8 @@ User.init(
   },
   {
     sequelize,
-    tableName: "users",
+    modelName: "user",
+    timestamps: false,
   }
 );
 

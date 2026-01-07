@@ -30,10 +30,6 @@ class Cart
   public setProducts!: BelongsToManySetAssociationsMixin<Product, number>;
   public removeProduct!: BelongsToManyRemoveAssociationMixin<Product, number>;
   public removeProducts!: BelongsToManyRemoveAssociationsMixin<Product, number>;
-
-  // optional timestamps (if you have them enabled)
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
 }
 
 Cart.init(
@@ -47,7 +43,8 @@ Cart.init(
   },
   {
     sequelize,
-    tableName: "carts",
+    modelName: "cart",
+    timestamps: false,
   }
 );
 

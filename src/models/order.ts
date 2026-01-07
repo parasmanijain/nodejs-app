@@ -28,10 +28,6 @@ class Order
   public addProducts!: BelongsToManyAddAssociationsMixin<Product, number>;
   public setProducts!: BelongsToManySetAssociationsMixin<Product, number>;
   public removeProduct!: BelongsToManyRemoveAssociationMixin<Product, number>;
-
-  // optional timestamps
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
 }
 
 Order.init(
@@ -45,7 +41,8 @@ Order.init(
   },
   {
     sequelize,
-    tableName: "orders",
+    modelName: "order",
+    timestamps: false,
   }
 );
 
