@@ -1,7 +1,8 @@
-import { Db, InsertOneResult, WithId, Document } from "mongodb";
+import { Db, InsertOneResult, WithId, ObjectId } from "mongodb";
 import { getDb } from "../util/database";
 
 export interface ProductDocument {
+  _id?: ObjectId;
   title: string;
   price: number;
   description: string;
@@ -29,12 +30,12 @@ export class Product {
   async save(): Promise<InsertOneResult<ProductDocument>> {
     const db: Db = getDb();
     try {
-      const result_1 = await db
+      const result = await db
         .collection<ProductDocument>("products")
         .insertOne(this);
-      console.log(result_1);
-      return result_1;
-    } catch (err) {
+      console.log(result);
+      return result;
+    } catch (err: unknown) {
       console.error(err);
       throw err;
     }
@@ -49,7 +50,23 @@ export class Product {
         .toArray();
       console.log(products);
       return products;
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  static async findById(
+    prodId: string
+  ): Promise<WithId<ProductDocument> | null> {
+    const db: Db = getDb();
+    try {
+      const product = await db
+        .collection<ProductDocument>("products")
+        .findOne({ _id: new ObjectId(prodId) });
+      console.log(product);
+      return product;
+    } catch (err: unknown) {
       console.error(err);
       throw err;
     }

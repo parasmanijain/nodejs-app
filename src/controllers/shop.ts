@@ -1,91 +1,63 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Product } from "../models/product";
-import { Cart } from "../models/cart";
 
-export const getProducts = (_: Request, res: Response) => {
-  Product.fetchAll((products) => {
+export const getProducts = async (
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    const products = await Product.fetchAll();
     res.render("shop/product-list", {
       prods: products,
       pageTitle: "All Products",
       path: "/products",
     });
-  });
+  } catch (err: unknown) {
+    console.error(err);
+  }
 };
 
-export const getProduct = (req: Request, res: Response) => {
-  const { productId } = req.params;
-  Product.findById(productId, (product) => {
-    if (product) {
-      res.render("shop/product-detail", {
-        product,
-        pageTitle: product.title,
+export const getProduct = async (
+  req: Request<{ productId: string }>,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    const prodId = req.params.productId;
+    const product = await Product.findById(prodId);
+
+    if (!product) {
+      res.status(404).render("404", {
+        pageTitle: "Product Not Found",
         path: "/products",
       });
+      return;
     }
-  });
+
+    res.render("shop/product-detail", {
+      product,
+      pageTitle: product.title,
+      path: "/products",
+    });
+  } catch (err: unknown) {
+    console.error(err);
+  }
 };
 
-export const getIndex = (_: Request, res: Response) => {
-  Product.fetchAll((products) => {
+export const getIndex = async (
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    const products = await Product.fetchAll();
     res.render("shop/index", {
       prods: products,
       pageTitle: "Shop",
       path: "/",
     });
-  });
-};
-
-export const getCart = (_: Request, res: Response) => {
-  Cart.getCart((cart) => {
-    Product.fetchAll((products) => {
-      const cartProducts = [];
-      for (let product of products) {
-        const cartProductData = cart.products.find(
-          (prod) => prod.id === product.id
-        );
-        if (cartProductData) {
-          cartProducts.push({ productData: product, qty: cartProductData.qty });
-        }
-      }
-      res.render("shop/cart", {
-        path: "/cart",
-        pageTitle: "Your Cart",
-        products: cartProducts,
-      });
-    });
-  });
-};
-
-export const postCart = (req: Request, res: Response) => {
-  const { productId } = req.body;
-  Product.findById(productId, (product) => {
-    if (product) {
-      Cart.addProduct(productId, product.price);
-    }
-  });
-  res.redirect("/cart");
-};
-
-export const postCartDeleteProduct = (req: Request, res: Response) => {
-  const { productId } = req.body;
-  Product.findById(productId, (product) => {
-    if (product) {
-      Cart.deleteProduct(productId, product.price);
-      res.redirect("/cart");
-    }
-  });
-};
-
-export const getOrders = (_: Request, res: Response) => {
-  res.render("shop/orders", {
-    path: "/orders",
-    pageTitle: "Your Orders",
-  });
-};
-
-export const getCheckout = (_: Request, res: Response) => {
-  res.render("shop/checkout", {
-    path: "/checkout",
-    pageTitle: "Checkout",
-  });
+  } catch (err: unknown) {
+    console.error(err);
+  }
 };
