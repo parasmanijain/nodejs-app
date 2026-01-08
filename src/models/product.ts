@@ -14,6 +14,7 @@ export interface ProductDocument {
   price: number;
   description: string;
   imageUrl: string;
+  userId: ObjectId;
 }
 
 export class Product {
@@ -22,19 +23,22 @@ export class Product {
   price: number;
   description: string;
   imageUrl: string;
+  userId: ObjectId;
 
   constructor(
     title: string,
     price: number,
     description: string,
     imageUrl: string,
-    id?: string
+    id: string | null,
+    userId: ObjectId
   ) {
     this.title = title;
     this.price = price;
     this.description = description;
     this.imageUrl = imageUrl;
     this._id = id ? new ObjectId(id) : null;
+    this.userId = userId;
   }
 
   async save(): Promise<InsertOneResult<ProductDocument> | UpdateResult> {
@@ -49,6 +53,7 @@ export class Product {
             price: this.price,
             description: this.description,
             imageUrl: this.imageUrl,
+            userId: this.userId,
           },
         }
       );
@@ -59,6 +64,7 @@ export class Product {
       price: this.price,
       description: this.description,
       imageUrl: this.imageUrl,
+      userId: this.userId,
     });
   }
 

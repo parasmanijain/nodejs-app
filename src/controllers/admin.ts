@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { Product } from "../models/product";
+import { ObjectId } from "mongodb";
 
 export function getAddProduct(
   _req: Request,
   res: Response,
   _next: NextFunction
-) {
+): void {
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
@@ -17,36 +18,44 @@ export function postAddProduct(
   req: Request,
   res: Response,
   _next: NextFunction
-) {
-  const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
-  const price = req.body.price;
-  const description = req.body.description;
-  const product = new Product(title, price, description, imageUrl);
+): void {
+  const { title, imageUrl, price, description } = req.body;
+
+  if (!req.user?._id) {
+    res.redirect("/login");
+    return;
+  }
+
+  const product = new Product(
+    title,
+    +price,
+    description,
+    imageUrl,
+    null,
+    req.user._id as ObjectId
+  );
+
   product
     .save()
-    .then((result) => {
-      // console.log(result);
+    .then(() => {
       console.log("Created Product");
       res.redirect("/admin/products");
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch((err) => console.error(err));
 }
 
 export function getEditProduct(
-  req: Request,
+  req: Request<{ productId: string }>,
   res: Response,
   _next: NextFunction
-) {
-  const editMode = req.query.edit;
+): void {
+  const editMode = req.query.edit === "true";
   if (!editMode) {
-    return res.redirect("/");
+    res.redirect("/");
+    return;
   }
   const prodId = req.params.productId;
   Product.findById(prodId)
-    // Product.findById(prodId)
     .then((product) => {
       if (!product) {
         return res.redirect("/");
@@ -55,40 +64,47 @@ export function getEditProduct(
         pageTitle: "Edit Product",
         path: "/admin/edit-product",
         editing: editMode,
-        product: product,
+        product,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 }
 
 export function postEditProduct(
   req: Request,
   res: Response,
   _next: NextFunction
-) {
-  const prodId = req.body.productId;
-  const updatedTitle = req.body.title;
-  const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
-  const updatedDesc = req.body.description;
+): void {
+  const { productId, title, price, imageUrl, description } = req.body;
+
+  if (!req.user?._id) {
+    res.redirect("/login");
+    return;
+  }
 
   const product = new Product(
-    updatedTitle,
-    updatedPrice,
-    updatedDesc,
-    updatedImageUrl,
-    prodId
+    title,
+    +price,
+    description,
+    imageUrl,
+    productId,
+    req.user._id as ObjectId
   );
+
   product
     .save()
-    .then((result) => {
+    .then(() => {
       console.log("UPDATED PRODUCT!");
       res.redirect("/admin/products");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 }
 
-export function getProducts(_req: Request, res: Response, _next: NextFunction) {
+export function getProducts(
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): void {
   Product.fetchAll()
     .then((products) => {
       res.render("admin/products", {
@@ -97,19 +113,20 @@ export function getProducts(_req: Request, res: Response, _next: NextFunction) {
         path: "/admin/products",
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 }
 
 export function postDeleteProduct(
   req: Request,
   res: Response,
   _next: NextFunction
-) {
+): void {
   const prodId = req.body.productId;
+
   Product.deleteById(prodId)
     .then(() => {
       console.log("DESTROYED PRODUCT");
       res.redirect("/admin/products");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 }
