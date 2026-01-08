@@ -1,123 +1,57 @@
-import fs from "fs";
-import { join } from "path";
-import { Cart } from "./cart";
+import { Db, InsertOneResult, WithId, Document } from "mongodb";
+import { getDb } from "../util/database";
 
-// Define the interface for a product
-interface ProductData {
+export interface ProductDocument {
   title: string;
-  imageUrl: string;
+  price: number;
   description: string;
-  price: string;
-  id: string | null;
+  imageUrl: string;
 }
 
-// Construct the path to the JSON file
-const dataDir = join(process.cwd(), "data");
-const p: string = join(dataDir, "products.json");
-
-// Utility function to get products from file
-const getProductsFromFile = (cb: (products: ProductData[]) => void): void => {
-  fs.readFile(p, (err, fileContent) => {
-    if (err || !fileContent.length) {
-      cb([]);
-    } else {
-      try {
-        const data: ProductData[] = JSON.parse(fileContent.toString());
-        cb(data);
-      } catch (e) {
-        cb([]);
-      }
-    }
-  });
-};
-
-// Product class
 export class Product {
-  id: string | null;
   title: string;
-  imageUrl: string;
+  price: number;
   description: string;
-  price: string;
+  imageUrl: string;
+
   constructor(
-    id: string | null,
     title: string,
-    imageUrl: string,
+    price: number,
     description: string,
-    price: string
+    imageUrl: string
   ) {
-    this.id = id;
     this.title = title;
-    this.imageUrl = imageUrl;
-    this.description = description;
     this.price = price;
+    this.description = description;
+    this.imageUrl = imageUrl;
   }
 
-  save(): void {
-    getProductsFromFile((products: ProductData[]) => {
-      if (this.id) {
-        // Update existing product
-        const existingProductIndex = products.findIndex(
-          (prod) => prod.id === this.id
-        );
-        const updatedProducts = [...products];
-        updatedProducts[existingProductIndex] = this;
-
-        // Ensure directory exists before writing
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
-          if (dirErr) {
-            console.error("Error creating data directory:", dirErr);
-            return;
-          }
-          fs.writeFile(p, JSON.stringify(updatedProducts, null, 2), (err) => {
-            if (err) console.error("Error updating product:", err);
-          });
-        });
-      } else {
-        // Create new product
-        this.id = Math.random().toString();
-        products.push(this);
-
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
-          if (dirErr) {
-            console.error("Error creating data directory:", dirErr);
-            return;
-          }
-          fs.writeFile(p, JSON.stringify(products, null, 2), (err) => {
-            if (err) console.error("Error saving new product:", err);
-          });
-        });
-      }
-    });
+  async save(): Promise<InsertOneResult<ProductDocument>> {
+    const db: Db = getDb();
+    try {
+      const result_1 = await db
+        .collection<ProductDocument>("products")
+        .insertOne(this);
+      console.log(result_1);
+      return result_1;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 
-  static deleteById(id: string) {
-    getProductsFromFile((products) => {
-      const product = products.find((prod) => prod.id === id);
-      if (product) {
-        const updatedProducts = products.filter((prod) => prod.id !== id);
-        fs.mkdir(dataDir, { recursive: true }, (dirErr) => {
-          if (dirErr) {
-            console.error("Error creating data directory:", dirErr);
-            return;
-          }
-          fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
-            if (!err) {
-              Cart.deleteProduct(id, product.price);
-            }
-          });
-        });
-      }
-    });
-  }
-
-  static fetchAll(cb: (products: ProductData[]) => void): void {
-    getProductsFromFile(cb);
-  }
-
-  static findById(id: string, cb: (_?: ProductData) => void): void {
-    getProductsFromFile((products) => {
-      const product = products.find((p) => p.id === id);
-      cb(product);
-    });
+  static async fetchAll(): Promise<WithId<ProductDocument>[]> {
+    const db: Db = getDb();
+    try {
+      const products = await db
+        .collection<ProductDocument>("products")
+        .find()
+        .toArray();
+      console.log(products);
+      return products;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 }
