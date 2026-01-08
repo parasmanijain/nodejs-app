@@ -11,7 +11,7 @@ export interface Cart {
 }
 
 export interface UserDocument {
-  _id?: ObjectId;
+  _id: ObjectId;
   name: string;
   email: string;
   cart: Cart;
@@ -31,8 +31,17 @@ export interface CartProduct extends ProductDocument {
   quantity: number;
 }
 
-export class User {
+export interface OrderDocument {
   _id?: ObjectId;
+  items: CartProduct[];
+  user: {
+    _id: ObjectId;
+    name: string;
+  };
+}
+
+export class User {
+  _id!: ObjectId;
   name: string;
   email: string;
   cart: Cart;
@@ -63,9 +72,6 @@ export class User {
   }
 
   addToCart(product: Product): Promise<UpdateResult> {
-    if (!this._id) {
-      throw new Error("User must have an _id to update cart");
-    }
     const cartProductIndex = this.cart.items.findIndex(
       (cp) => cp.productId.toString() === product._id.toString()
     );
@@ -106,13 +112,9 @@ export class User {
   }
 
   deleteItemFromCart(productId: string): Promise<UpdateResult> {
-    if (!this._id) {
-      throw new Error("User must have an _id to update cart");
-    }
     const updatedCartItems = this.cart.items.filter(
       (item) => item.productId.toString() !== productId.toString()
     );
-
     const db: Db = getDb();
     return db
       .collection<UserDocument>("users")
@@ -122,18 +124,37 @@ export class User {
       );
   }
 
+  async addOrder(): Promise<UpdateResult> {
+    const db: Db = getDb();
+    const products = await this.getCart();
+    const order: OrderDocument = {
+      items: products,
+      user: {
+        _id: this._id,
+        name: this.name,
+      },
+    };
+    await db.collection<OrderDocument>("orders").insertOne(order);
+    this.cart = { items: [] };
+    return db
+      .collection<UserDocument>("users")
+      .updateOne({ _id: this._id }, { $set: { cart: { items: [] } } });
+  }
+
+  getOrders(): Promise<OrderDocument[]> {
+    const db: Db = getDb();
+    return db
+      .collection<OrderDocument>("orders")
+      .find({ "user._id": this._id })
+      .toArray();
+  }
+
   static async findById(userId: string): Promise<User | null> {
     const db: Db = getDb();
-    try {
-      const userDoc: WithId<UserDocument> | null = await db
-        .collection<UserDocument>("users")
-        .findOne({ _id: new ObjectId(userId) });
-
-      if (!userDoc) return null;
-      return new User(userDoc.name, userDoc.email, userDoc.cart, userDoc._id);
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
+    const userDoc = await db
+      .collection<UserDocument>("users")
+      .findOne({ _id: new ObjectId(userId) });
+    if (!userDoc) return null;
+    return new User(userDoc.name, userDoc.email, userDoc.cart, userDoc._id);
   }
 }

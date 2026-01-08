@@ -68,7 +68,7 @@ export const getCart = async (
   _next: NextFunction
 ): Promise<void> => {
   try {
-    const products = await req.user.getCart();
+    const products = await req.user!.getCart();
 
     res.render("shop/cart", {
       path: "/cart",
@@ -94,7 +94,7 @@ export const postCart = async (
       return;
     }
 
-    await req.user.addToCart(product);
+    await req.user!.addToCart(product);
     res.redirect("/cart");
   } catch (err) {
     console.error(err);
@@ -108,8 +108,39 @@ export const postCartDeleteProduct = async (
 ): Promise<void> => {
   try {
     const prodId = req.body.productId;
-    await req.user.deleteItemFromCart(prodId);
+    await req.user!.deleteItemFromCart(prodId);
     res.redirect("/cart");
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const postOrder = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    await req.user!.addOrder();
+    res.redirect("/orders");
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const getOrders = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    const orders = await req.user!.getOrders();
+
+    res.render("shop/orders", {
+      path: "/orders",
+      pageTitle: "Your Orders",
+      orders,
+    });
   } catch (err) {
     console.error(err);
   }

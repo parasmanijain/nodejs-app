@@ -1,4 +1,3 @@
-import { WithId } from "mongodb";
 import { UserDocument } from "../../models/user";
 
 declare global {
