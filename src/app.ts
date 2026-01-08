@@ -23,7 +23,7 @@ app.use(express_static(join(__dirname, "public")));
 app.use(
   async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
-      const user = await User.findById("5baa2528563f16379fc8a610");
+      const user = await User.findById("695f6b6871f02ca372daac24");
       req.user = user;
       next();
     } catch (err: unknown) {
@@ -37,7 +37,15 @@ app.use("/admin", adminRoutes);
 
 app.use(get404);
 
-mongoConnect((client) => {
-  console.log(client);
-  app.listen(3000);
-});
+const startServer = async () => {
+  try {
+    await mongoConnect();
+    app.listen(3000, () => {
+      console.log("Server running on http://localhost:3000");
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+  }
+};
+
+startServer();

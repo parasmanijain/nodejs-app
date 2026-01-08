@@ -14,24 +14,14 @@ const MONGODB_URI = `mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB
 
 let _db: Db;
 
-type MongoCallback = (client: MongoClient) => void;
-
-export const mongoConnect = (callback: MongoCallback): void => {
-  MongoClient.connect(MONGODB_URI)
-    .then((client) => {
-      console.log("Connected to MongoDB!");
-      _db = client.db(MONGODB_DATABASE);
-      callback(client);
-    })
-    .catch((err: unknown) => {
-      console.error("MongoDB connection failed:", err);
-      throw err;
-    });
+export const mongoConnect = async () => {
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  console.log("✅ Connected to MongoDB Atlas");
+  _db = client.db(MONGODB_DATABASE);
 };
 
 export const getDb = (): Db => {
-  if (!_db) {
-    throw new Error("No database found!");
-  }
+  if (!_db) throw new Error("Database not initialized");
   return _db;
 };
