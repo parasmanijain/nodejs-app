@@ -1,5 +1,6 @@
 import express, { urlencoded, static as express_static } from "express";
 import { join } from "path";
+import { mongoConnect } from "./util/database";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
 import { viewsPath } from "./util/path";
@@ -17,4 +18,9 @@ app.use("/admin", adminRoutes);
 
 app.use(get404);
 
-app.listen(3000);
+app.use((req, res, next) => {});
+
+mongoConnect((client) => {
+  console.log(client);
+  app.listen(3000);
+});
