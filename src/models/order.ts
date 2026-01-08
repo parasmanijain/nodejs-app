@@ -1,6 +1,21 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
-const orderSchema = new Schema({
+export interface OrderProduct {
+  product: any;
+  quantity: number;
+}
+
+export interface OrderUser {
+  name: string;
+  userId: Types.ObjectId;
+}
+
+export interface OrderDocument extends Document {
+  products: OrderProduct[];
+  user: OrderUser;
+}
+
+const orderSchema = new Schema<OrderDocument>({
   products: [
     {
       product: { type: Object, required: true },
@@ -20,4 +35,4 @@ const orderSchema = new Schema({
   },
 });
 
-export default model("Order", orderSchema);
+export const Order = model<OrderDocument>("Order", orderSchema);

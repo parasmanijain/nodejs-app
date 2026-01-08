@@ -1,8 +1,25 @@
-import { Schema as _Schema, model } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
-const Schema = _Schema;
+export interface CartItem {
+  productId: Types.ObjectId;
+  quantity: number;
+}
 
-const userSchema = new Schema({
+export interface Cart {
+  items: CartItem[];
+}
+
+export interface UserDocument extends Document {
+  name: string;
+  email: string;
+  cart: Cart;
+
+  addToCart(product: { _id: Types.ObjectId }): Promise<UserDocument>;
+  removeFromCart(productId: Types.ObjectId): Promise<UserDocument>;
+  clearCart(): Promise<UserDocument>;
+}
+
+const userSchema = new Schema<UserDocument>({
   name: {
     type: String,
     required: true,
@@ -25,10 +42,14 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.methods.addToCart = function (product) {
+userSchema.methods.addToCart = function (
+  this: UserDocument,
+  product: { _id: Types.ObjectId }
+) {
   const cartProductIndex = this.cart.items.findIndex((cp) => {
     return cp.productId.toString() === product._id.toString();
   });
+
   let newQuantity = 1;
   const updatedCartItems = [...this.cart.items];
 
@@ -41,24 +62,26 @@ userSchema.methods.addToCart = function (product) {
       quantity: newQuantity,
     });
   }
-  const updatedCart = {
-    items: updatedCartItems,
-  };
-  this.cart = updatedCart;
+
+  this.cart = { items: updatedCartItems };
   return this.save();
 };
 
-userSchema.methods.removeFromCart = function (productId) {
+userSchema.methods.removeFromCart = function (
+  this: UserDocument,
+  productId: Types.ObjectId
+) {
   const updatedCartItems = this.cart.items.filter((item) => {
     return item.productId.toString() !== productId.toString();
   });
+
   this.cart.items = updatedCartItems;
   return this.save();
 };
 
-userSchema.methods.clearCart = function () {
+userSchema.methods.clearCart = function (this: UserDocument) {
   this.cart = { items: [] };
   return this.save();
 };
 
-export default model("User", userSchema);
+export const User = model<UserDocument>("User", userSchema);

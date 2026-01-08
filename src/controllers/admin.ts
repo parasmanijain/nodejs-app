@@ -1,12 +1,11 @@
-import { Request, Response } from "express";
-import Product from "../models/product";
-import { NextFunction } from "express-serve-static-core";
+import { Request, Response, NextFunction } from "express";
+import { Product } from "../models/product";
 
 export const getAddProduct = (
   req: Request,
   res: Response,
   _next: NextFunction
-) => {
+): void => {
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
@@ -14,114 +13,121 @@ export const getAddProduct = (
   });
 };
 
-export const postAddProduct = (
+export const postAddProduct = async (
   req: Request,
   res: Response,
   _next: NextFunction
-) => {
-  const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
-  const price = req.body.price;
-  const description = req.body.description;
-  const product = new Product({
-    title: title,
-    price: price,
-    description: description,
-    imageUrl: imageUrl,
-    userId: req.user,
-  });
-  product
-    .save()
-    .then((result) => {
-      // console.log(result);
-      console.log("Created Product");
-      res.redirect("/admin/products");
-    })
-    .catch((err) => {
-      console.log(err);
+): Promise<void> => {
+  try {
+    const { title, imageUrl, price, description } = req.body;
+    if (!req.user) {
+      res.redirect("/login");
+      return;
+    }
+    const product = new Product({
+      title,
+      price: Number(price),
+      description,
+      imageUrl,
+      userId: req.user._id,
     });
-};
 
-export const getEditProduct = (
-  req: Request,
-  res: Response,
-  _next: NextFunction
-) => {
-  const editMode = req.query.edit;
-  if (!editMode) {
-    return res.redirect("/");
+    await product.save();
+
+    console.log("Created Product");
+    res.redirect("/admin/products");
+  } catch (err) {
+    console.error(err);
   }
-  const prodId = req.params.productId;
-  Product.findById(prodId)
-    .then((product) => {
-      if (!product) {
-        return res.redirect("/");
-      }
-      res.render("admin/edit-product", {
-        pageTitle: "Edit Product",
-        path: "/admin/edit-product",
-        editing: editMode,
-        product: product,
-      });
-    })
-    .catch((err) => console.log(err));
 };
 
-export const postEditProduct = (
+export const getEditProduct = async (
   req: Request,
   res: Response,
   _next: NextFunction
-) => {
-  const prodId = req.body.productId;
-  const updatedTitle = req.body.title;
-  const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
-  const updatedDesc = req.body.description;
+): Promise<void> => {
+  try {
+    const editMode = req.query.edit;
 
-  Product.findById(prodId)
-    .then((product) => {
-      product.title = updatedTitle;
-      product.price = updatedPrice;
-      product.description = updatedDesc;
-      product.imageUrl = updatedImageUrl;
-      return product.save();
-    })
-    .then((result) => {
-      console.log("UPDATED PRODUCT!");
-      res.redirect("/admin/products");
-    })
-    .catch((err) => console.log(err));
+    if (!editMode) {
+      res.redirect("/");
+      return;
+    }
+
+    const prodId = req.params.productId;
+
+    const product = await Product.findById(prodId);
+
+    if (!product) {
+      res.redirect("/");
+      return;
+    }
+
+    res.render("admin/edit-product", {
+      pageTitle: "Edit Product",
+      path: "/admin/edit-product",
+      editing: Boolean(editMode),
+      product,
+    });
+  } catch (err) {
+    console.error(err);
+  }
 };
 
-export const getProducts = (
+export const postEditProduct = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    const { productId, title, price, imageUrl, description } = req.body;
+    const product = await Product.findById(productId);
+    if (!product) {
+      res.redirect("/");
+      return;
+    }
+    product.title = title;
+    product.price = Number(price);
+    product.description = description;
+    product.imageUrl = imageUrl;
+
+    await product.save();
+
+    console.log("UPDATED PRODUCT!");
+    res.redirect("/admin/products");
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const getProducts = async (
   _req: Request,
   res: Response,
   _next: NextFunction
-) => {
-  Product.find()
-    // .select('title price -_id')
-    // .populate('userId', 'name')
-    .then((products) => {
-      console.log(products);
-      res.render("admin/products", {
-        prods: products,
-        pageTitle: "Admin Products",
-        path: "/admin/products",
-      });
-    })
-    .catch((err) => console.log(err));
+): Promise<void> => {
+  try {
+    const products = await Product.find();
+    res.render("admin/products", {
+      prods: products,
+      pageTitle: "Admin Products",
+      path: "/admin/products",
+    });
+  } catch (err) {
+    console.error(err);
+  }
 };
 
-export function postDeleteProduct(
+export const postDeleteProduct = async (
   req: Request,
   res: Response,
   _next: NextFunction
-) {
-  const prodId = req.body.productId;
-  Product.findByIdAndDelete(prodId)
-    .then(() => {
-      console.log("DESTROYED PRODUCT");
-      res.redirect("/admin/products");
-    })
-    .catch((err) => console.log(err));
-}
+): Promise<void> => {
+  try {
+    const { productId } = req.body;
+    await Product.findByIdAndDelete(productId);
+    console.log("DESTROYED PRODUCT");
+    res.redirect("/admin/products");
+  } catch (err) {
+    console.error(err);
+  }
+};

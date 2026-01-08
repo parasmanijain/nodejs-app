@@ -6,40 +6,46 @@ import express, {
   NextFunction,
 } from "express";
 import { join } from "path";
-import User from "./models/user";
+import dotenv from "dotenv";
+import { connect } from "mongoose";
+import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
 import { viewsPath } from "./util/path";
 import { get404 } from "./controllers/error";
-import { connect } from "mongoose";
-import dotenv from "dotenv";
 
-// Load env variables
 dotenv.config();
 
-// Build MongoDB URI from env
 const {
-  MONGO_USER,
-  MONGO_PASSWORD,
-  MONGO_HOST,
-  MONGO_DB,
-  PORT = 3000,
+  MONGODB_USER,
+  MONGODB_PASSWORD,
+  MONGODB_HOST,
+  MONGODB_DATABASE,
+  PORT = "3000",
 } = process.env;
 
+if (!MONGODB_USER || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_DATABASE) {
+  throw new Error("Missing MongoDB environment variables");
+}
+
 const app = express();
+
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
 
 app.use(urlencoded({ extended: false }));
 app.use(express_static(join(__dirname, "public")));
 
-app.use((req, res, next) => {
-  User.findById("5bab316ce0a7c75f783cb8a8")
-    .then((user) => {
+app.use(async (req: Request, _res: Response, next: NextFunction) => {
+  try {
+    const user = await User.findById("695f6b6871f02ca372daac24");
+    if (user) {
       req.user = user;
-      next();
-    })
-    .catch((err) => console.log(err));
+    }
+    next();
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 app.use(shopRoutes);
@@ -47,24 +53,26 @@ app.use("/admin", adminRoutes);
 
 app.use(get404);
 
-const MONGO_URI = `mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_HOST}/${MONGO_DB}?retryWrites=true&w=majority`;
+const MONGO_URI = `mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${MONGODB_DATABASE}?retryWrites=true&w=majority`;
 
-connect(MONGO_URI)
-  .then(() => {
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          name: "Paras",
-          email: "test@test.com",
-          cart: {
-            items: [],
-          },
-        });
-        user.save();
-      }
+async function startServer() {
+  try {
+    await connect(MONGO_URI);
+    console.log("MongoDB connected");
+    const existingUser = await User.findOne();
+    if (!existingUser) {
+      const user = new User({
+        name: "Paras",
+        email: "test@test.com",
+        cart: { items: [] },
+      });
+      await user.save();
+    }
+    app.listen(Number(PORT), () => {
+      console.log(`Server running on port ${PORT}`);
     });
-    app.listen(3000);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+  }
+}
+startServer();
