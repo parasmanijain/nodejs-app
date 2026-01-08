@@ -1,147 +1,132 @@
 import { NextFunction, Request, Response } from "express";
-import { Product } from "../models/product";
+import Product from "../models/product";
+import Order from "../models/order";
 
-export const getProducts = async (
+export const getProducts = (
   _req: Request,
   res: Response,
   _next: NextFunction
-): Promise<void> => {
-  try {
-    const products = await Product.fetchAll();
-    res.render("shop/product-list", {
-      prods: products,
-      pageTitle: "All Products",
-      path: "/products",
-    });
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-export const getProduct = async (
-  req: Request<{ productId: string }>,
-  res: Response,
-  _next: NextFunction
-): Promise<void> => {
-  try {
-    const prodId = req.params.productId;
-    const product = await Product.findById(prodId);
-
-    if (!product) {
-      res.status(404).render("404", {
-        pageTitle: "Product Not Found",
+) => {
+  Product.find()
+    .then((products) => {
+      console.log(products);
+      res.render("shop/product-list", {
+        prods: products,
+        pageTitle: "All Products",
         path: "/products",
       });
-      return;
-    }
-
-    res.render("shop/product-detail", {
-      product,
-      pageTitle: product.title,
-      path: "/products",
+    })
+    .catch((err) => {
+      console.log(err);
     });
-  } catch (err) {
-    console.error(err);
-  }
 };
 
-export const getIndex = async (
-  _req: Request,
+export const getProduct = (
+  req: Request,
   res: Response,
   _next: NextFunction
-): Promise<void> => {
-  try {
-    const products = await Product.fetchAll();
-    res.render("shop/index", {
-      prods: products,
-      pageTitle: "Shop",
-      path: "/",
+) => {
+  const prodId = req.params.productId;
+  Product.findById(prodId)
+    .then((product) => {
+      res.render("shop/product-detail", {
+        product: product,
+        pageTitle: product.title,
+        path: "/products",
+      });
+    })
+    .catch((err) => console.log(err));
+};
+
+export const getIndex = (_req: Request, res: Response, _next: NextFunction) => {
+  Product.find()
+    .then((products) => {
+      res.render("shop/index", {
+        prods: products,
+        pageTitle: "Shop",
+        path: "/",
+      });
+    })
+    .catch((err) => {
+      console.log(err);
     });
-  } catch (err) {
-    console.error(err);
-  }
 };
 
-export const getCart = async (
-  req: Request,
-  res: Response,
-  _next: NextFunction
-): Promise<void> => {
-  try {
-    const products = await req.user!.getCart();
+export const getCart = (req: Request, res: Response, _next: NextFunction) => {
+  req.user
+    .populate("cart.items.productId")
+    .execPopulate()
+    .then((user) => {
+      const products = user.cart.items;
+      res.render("shop/cart", {
+        path: "/cart",
+        pageTitle: "Your Cart",
+        products: products,
+      });
+    })
+    .catch((err) => console.log(err));
+};
 
-    res.render("shop/cart", {
-      path: "/cart",
-      pageTitle: "Your Cart",
-      products,
+export const postCart = (req: Request, res: Response, _next: NextFunction) => {
+  const prodId = req.body.productId;
+  Product.findById(prodId)
+    .then((product) => {
+      return req.user.addToCart(product);
+    })
+    .then((result) => {
+      console.log(result);
+      res.redirect("/cart");
     });
-  } catch (err) {
-    console.error(err);
-  }
 };
 
-export const postCart = async (
+export const postCartDeleteProduct = (
   req: Request,
   res: Response,
   _next: NextFunction
-): Promise<void> => {
-  try {
-    const prodId = req.body.productId;
-    const product = await Product.findById(prodId);
-
-    if (!product) {
-      res.redirect("/products");
-      return;
-    }
-
-    await req.user!.addToCart(product);
-    res.redirect("/cart");
-  } catch (err) {
-    console.error(err);
-  }
+) => {
+  const prodId = req.body.productId;
+  req.user
+    .removeFromCart(prodId)
+    .then((result) => {
+      res.redirect("/cart");
+    })
+    .catch((err) => console.log(err));
 };
 
-export const postCartDeleteProduct = async (
-  req: Request,
-  res: Response,
-  _next: NextFunction
-): Promise<void> => {
-  try {
-    const prodId = req.body.productId;
-    await req.user!.deleteItemFromCart(prodId);
-    res.redirect("/cart");
-  } catch (err) {
-    console.error(err);
-  }
+export const postOrder = (req: Request, res: Response, _next: NextFunction) => {
+  req.user
+    .populate("cart.items.productId")
+    .execPopulate()
+    .then((user) => {
+      const products = user.cart.items.map((i) => {
+        return { quantity: i.quantity, product: { ...i.productId._doc } };
+      });
+      const order = new Order({
+        user: {
+          name: req.user.name,
+          userId: req.user,
+        },
+        products: products,
+      });
+      return order.save();
+    })
+    .then(() => {
+      return req.user.clearCart();
+    })
+    .then(() => {
+      res.redirect("/orders");
+    })
+    .catch((err) => console.log(err));
 };
 
-export const postOrder = async (
-  req: Request,
-  res: Response,
-  _next: NextFunction
-): Promise<void> => {
-  try {
-    await req.user!.addOrder();
-    res.redirect("/orders");
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-export const getOrders = async (
-  req: Request,
-  res: Response,
-  _next: NextFunction
-): Promise<void> => {
-  try {
-    const orders = await req.user!.getOrders();
-
-    res.render("shop/orders", {
-      path: "/orders",
-      pageTitle: "Your Orders",
-      orders,
-    });
-  } catch (err) {
-    console.error(err);
-  }
+export const getOrders = (req: Request, res: Response, _next: NextFunction) => {
+  Order.find({ "user.userId": req.user._id })
+    .then((orders) => {
+      res.render("shop/orders", {
+        path: "/orders",
+        pageTitle: "Your Orders",
+        orders: orders,
+      });
+    })
+    .catch((err) => console.log(err));
 };
