@@ -21,6 +21,16 @@ export interface Product {
   _id: ObjectId;
 }
 
+export interface ProductDocument {
+  _id: ObjectId;
+  title?: string;
+  price?: number;
+}
+
+export interface CartProduct extends ProductDocument {
+  quantity: number;
+}
+
 export class User {
   _id?: ObjectId;
   name: string;
@@ -45,6 +55,7 @@ export class User {
   save(): Promise<InsertOneResult<UserDocument>> {
     const db: Db = getDb();
     return db.collection<UserDocument>("users").insertOne({
+      _id: this._id,
       name: this.name,
       email: this.email,
       cart: this.cart,
@@ -55,14 +66,11 @@ export class User {
     if (!this._id) {
       throw new Error("User must have an _id to update cart");
     }
-
     const cartProductIndex = this.cart.items.findIndex(
       (cp) => cp.productId.toString() === product._id.toString()
     );
-
     const updatedCartItems = [...this.cart.items];
     let newQuantity = 1;
-
     if (cartProductIndex >= 0) {
       newQuantity = updatedCartItems[cartProductIndex].quantity + 1;
       updatedCartItems[cartProductIndex].quantity = newQuantity;
@@ -72,16 +80,48 @@ export class User {
         quantity: newQuantity,
       });
     }
-
     const updatedCart: Cart = { items: updatedCartItems };
-
     const db: Db = getDb();
     return db
       .collection<UserDocument>("users")
       .updateOne({ _id: this._id }, { $set: { cart: updatedCart } });
   }
 
-  // Find user by ID
+  async getCart(): Promise<CartProduct[]> {
+    const db: Db = getDb();
+    const productIds = this.cart.items.map((i) => i.productId);
+    const products = await db
+      .collection<ProductDocument>("products")
+      .find({ _id: { $in: productIds } })
+      .toArray();
+    return products.map((p) => {
+      const cartItem = this.cart.items.find(
+        (i) => i.productId.toString() === p._id.toString()
+      );
+      return {
+        ...p,
+        quantity: cartItem ? cartItem.quantity : 0,
+      };
+    });
+  }
+
+  deleteItemFromCart(productId: string): Promise<UpdateResult> {
+    if (!this._id) {
+      throw new Error("User must have an _id to update cart");
+    }
+    const updatedCartItems = this.cart.items.filter(
+      (item) => item.productId.toString() !== productId.toString()
+    );
+
+    const db: Db = getDb();
+    return db
+      .collection<UserDocument>("users")
+      .updateOne(
+        { _id: this._id },
+        { $set: { cart: { items: updatedCartItems } } }
+      );
+  }
+
   static async findById(userId: string): Promise<User | null> {
     const db: Db = getDb();
     try {
@@ -90,9 +130,8 @@ export class User {
         .findOne({ _id: new ObjectId(userId) });
 
       if (!userDoc) return null;
-
       return new User(userDoc.name, userDoc.email, userDoc.cart, userDoc._id);
-    } catch (err: unknown) {
+    } catch (err) {
       console.error(err);
       throw err;
     }

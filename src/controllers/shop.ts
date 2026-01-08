@@ -13,7 +13,7 @@ export const getProducts = async (
       pageTitle: "All Products",
       path: "/products",
     });
-  } catch (err: unknown) {
+  } catch (err) {
     console.error(err);
   }
 };
@@ -40,7 +40,7 @@ export const getProduct = async (
       pageTitle: product.title,
       path: "/products",
     });
-  } catch (err: unknown) {
+  } catch (err) {
     console.error(err);
   }
 };
@@ -57,7 +57,60 @@ export const getIndex = async (
       pageTitle: "Shop",
       path: "/",
     });
-  } catch (err: unknown) {
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const getCart = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    const products = await req.user.getCart();
+
+    res.render("shop/cart", {
+      path: "/cart",
+      pageTitle: "Your Cart",
+      products,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const postCart = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    const prodId = req.body.productId;
+    const product = await Product.findById(prodId);
+
+    if (!product) {
+      res.redirect("/products");
+      return;
+    }
+
+    await req.user.addToCart(product);
+    res.redirect("/cart");
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const postCartDeleteProduct = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  try {
+    const prodId = req.body.productId;
+    await req.user.deleteItemFromCart(prodId);
+    res.redirect("/cart");
+  } catch (err) {
     console.error(err);
   }
 };
