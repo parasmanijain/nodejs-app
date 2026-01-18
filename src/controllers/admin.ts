@@ -4,19 +4,20 @@ import { Product } from "../models/product";
 export const getAddProduct = (
   req: Request,
   res: Response,
-  _next: NextFunction
-): void => {
+  _next: NextFunction,
+) => {
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
+    isAuthenticated: req.isLoggedIn,
   });
 };
 
 export const postAddProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     const { title, imageUrl, price, description } = req.body;
@@ -44,7 +45,7 @@ export const postAddProduct = async (
 export const getEditProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     const editMode = req.query.edit;
@@ -68,6 +69,7 @@ export const getEditProduct = async (
       path: "/admin/edit-product",
       editing: Boolean(editMode),
       product,
+      isAuthenticated: req.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -77,7 +79,7 @@ export const getEditProduct = async (
 export const postEditProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     const { productId, title, price, imageUrl, description } = req.body;
@@ -101,9 +103,9 @@ export const postEditProduct = async (
 };
 
 export const getProducts = async (
-  _req: Request,
+  req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     const products = await Product.find();
@@ -111,6 +113,7 @@ export const getProducts = async (
       prods: products,
       pageTitle: "Admin Products",
       path: "/admin/products",
+      isAuthenticated: req.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -120,7 +123,7 @@ export const getProducts = async (
 export const postDeleteProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     const { productId } = req.body;

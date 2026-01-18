@@ -3,9 +3,9 @@ import { Product } from "../models/product";
 import { Order } from "../models/order";
 
 export const getProducts = async (
-  _req: Request,
+  req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     const products = await Product.find();
@@ -14,6 +14,7 @@ export const getProducts = async (
       prods: products,
       pageTitle: "All Products",
       path: "/products",
+      isAuthenticated: req.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -23,7 +24,7 @@ export const getProducts = async (
 export const getProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     const prodId = req.params.productId;
@@ -38,6 +39,7 @@ export const getProduct = async (
       product,
       pageTitle: product.title,
       path: "/products",
+      isAuthenticated: req.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -45,9 +47,9 @@ export const getProduct = async (
 };
 
 export const getIndex = async (
-  _req: Request,
+  req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     const products = await Product.find();
@@ -56,6 +58,7 @@ export const getIndex = async (
       prods: products,
       pageTitle: "Shop",
       path: "/",
+      isAuthenticated: req.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -65,7 +68,7 @@ export const getIndex = async (
 export const getCart = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -81,6 +84,7 @@ export const getCart = async (
       path: "/cart",
       pageTitle: "Your Cart",
       products,
+      isAuthenticated: req.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -90,7 +94,7 @@ export const getCart = async (
 export const postCart = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -117,7 +121,7 @@ export const postCart = async (
 export const postCartDeleteProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -138,7 +142,7 @@ export const postCartDeleteProduct = async (
 export const postOrder = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -177,7 +181,7 @@ export const postOrder = async (
 export const getOrders = async (
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -191,6 +195,7 @@ export const getOrders = async (
       path: "/orders",
       pageTitle: "Your Orders",
       orders,
+      isAuthenticated: req.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
