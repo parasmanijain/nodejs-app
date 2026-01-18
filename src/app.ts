@@ -9,6 +9,7 @@ import { join } from "path";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
 import session from "express-session";
+import connectMongoDBSession from "connect-mongodb-session";
 import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -32,13 +33,27 @@ if (!MONGODB_USER || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_DATABASE) {
 
 const app = express();
 
+const MongoDBStore = connectMongoDBSession(session);
+
+const MONGO_URI = `mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${MONGODB_DATABASE}?retryWrites=true&w=majority`;
+
+const store = new MongoDBStore({
+  uri: MONGO_URI,
+  collection: "sessions",
+});
+
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
 
 app.use(urlencoded({ extended: false }));
 app.use(express_static(join(__dirname, "public")));
 app.use(
-  session({ secret: "my secret", resave: false, saveUninitialized: false }),
+  session({
+    secret: "my secret",
+    resave: false,
+    saveUninitialized: false,
+    store,
+  }),
 );
 
 app.use(async (req: Request, _res: Response, next: NextFunction) => {
@@ -58,8 +73,6 @@ app.use(shopRoutes);
 app.use(authRoutes);
 
 app.use(get404);
-
-const MONGO_URI = `mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${MONGODB_DATABASE}?retryWrites=true&w=majority`;
 
 async function startServer() {
   try {

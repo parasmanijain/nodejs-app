@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Product } from "../models/product";
 import { Order } from "../models/order";
+import { CartItem } from "../models/user";
 
 export const getProducts = async (
   req: Request,
@@ -152,7 +153,7 @@ export const postOrder = async (
 
     const user = await req.user.populate("cart.items.productId");
 
-    const products = user.cart.items.map((i) => {
+    const products = user.cart.items.map((i: CartItem) => {
       const productDoc = i.productId as any;
 
       return {

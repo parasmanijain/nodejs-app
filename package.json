@@ -17,6 +17,7 @@
     "start": "cross-env NODE_ENV=production node dist/app.js"
   },
   "devDependencies": {
+    "@types/connect-mongodb-session": "^2.4.8",
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.2",
     "@types/node": "^25.0.9",
@@ -28,6 +29,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "connect-mongodb-session": "^5.0.0",
     "dotenv": "^17.2.3",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
