@@ -11,6 +11,7 @@ import { connect } from "mongoose";
 import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
+import { router as authRoutes } from "./routes/auth";
 import { viewsPath } from "./util/path";
 import { get404 } from "./controllers/error";
 
@@ -48,8 +49,9 @@ app.use(async (req: Request, _res: Response, next: NextFunction) => {
   }
 });
 
-app.use(shopRoutes);
 app.use("/admin", adminRoutes);
+app.use(shopRoutes);
+app.use(authRoutes);
 
 app.use(get404);
 
