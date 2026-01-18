@@ -8,6 +8,7 @@ import express, {
 import { join } from "path";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
+import session from "express-session";
 import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -36,6 +37,9 @@ app.set("views", viewsPath);
 
 app.use(urlencoded({ extended: false }));
 app.use(express_static(join(__dirname, "public")));
+app.use(
+  session({ secret: "my secret", resave: false, saveUninitialized: false }),
+);
 
 app.use(async (req: Request, _res: Response, next: NextFunction) => {
   try {
