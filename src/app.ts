@@ -58,7 +58,7 @@ app.use(
 
 app.use(async (req: Request, _res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById("695f6b6871f02ca372daac24");
+    const user = await User.findById(req.session.userId);
     if (user) {
       req.user = user;
     }

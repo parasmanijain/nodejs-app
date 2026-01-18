@@ -17,7 +17,10 @@ export const postLogin = async (req: Request, res: Response) => {
     }
     req.session.isLoggedIn = true;
     req.session.userId = user._id.toString();
-    res.redirect("/");
+    req.session.save((err) => {
+      console.log(err);
+      res.redirect("/");
+    });
   } catch (err) {
     console.log(err);
     res.redirect("/login");
