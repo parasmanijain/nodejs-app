@@ -10,7 +10,7 @@ export const getAddProduct = (
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
-    isAuthenticated: req.isLoggedIn,
+    isAuthenticated: req.session.isLoggedIn,
   });
 };
 
@@ -69,7 +69,7 @@ export const getEditProduct = async (
       path: "/admin/edit-product",
       editing: Boolean(editMode),
       product,
-      isAuthenticated: req.isLoggedIn,
+      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -113,7 +113,7 @@ export const getProducts = async (
       prods: products,
       pageTitle: "Admin Products",
       path: "/admin/products",
-      isAuthenticated: req.isLoggedIn,
+      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
