@@ -9,14 +9,19 @@ export const getLogin = (_req: Request, res: Response, _next: NextFunction) => {
   });
 };
 
-export const postLogin = (req: Request, res: Response, _next: NextFunction) => {
-  User.findById("695f6b6871f02ca372daac24")
-    .then((user) => {
-      req.session.isLoggedIn = true;
-      req.session.user = user;
-      res.redirect("/");
-    })
-    .catch((err) => console.log(err));
+export const postLogin = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById("695f6b6871f02ca372daac24");
+    if (!user) {
+      return res.redirect("/login");
+    }
+    req.session.isLoggedIn = true;
+    req.session.userId = user._id.toString();
+    res.redirect("/");
+  } catch (err) {
+    console.log(err);
+    res.redirect("/login");
+  }
 };
 
 export function postLogout(req: Request, res: Response, _next: NextFunction) {
