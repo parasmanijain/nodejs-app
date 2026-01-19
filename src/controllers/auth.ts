@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { hash } from "bcryptjs";
 import { User } from "../models/user";
 
 export const getLogin = (_req: Request, res: Response, _next: NextFunction) => {
@@ -50,9 +51,10 @@ export const postSignup = async (
     if (existingUser) {
       return res.redirect("/signup");
     }
+    const hashedPassword = await hash(password, 12);
     const user = new User({
       email,
-      password,
+      password: hashedPassword,
       cart: { items: [] },
     });
     await user.save();

@@ -58,6 +58,9 @@ app.use(
 
 app.use(async (req: Request, _res: Response, next: NextFunction) => {
   try {
+    if (!req.session.userId) {
+      return next();
+    }
     const user = await User.findById(req.session.userId);
     if (user) {
       req.user = user;
@@ -78,15 +81,6 @@ async function startServer() {
   try {
     await connect(MONGO_URI);
     console.log("MongoDB connected");
-    const existingUser = await User.findOne();
-    if (!existingUser) {
-      const user = new User({
-        name: "Paras",
-        email: "test@test.com",
-        cart: { items: [] },
-      });
-      await user.save();
-    }
     app.listen(Number(PORT), () => {
       console.log(`Server running on port ${PORT}`);
     });

@@ -11,6 +11,7 @@ export interface Cart {
 
 export interface UserDocument extends Document {
   name: string;
+  password: string;
   email: string;
   cart: Cart;
 
@@ -22,9 +23,13 @@ export interface UserDocument extends Document {
 const userSchema = new Schema<UserDocument>({
   name: {
     type: String,
-    required: true,
+    required: false,
   },
   email: {
+    type: String,
+    required: true,
+  },
+  password: {
     type: String,
     required: true,
   },
@@ -44,7 +49,7 @@ const userSchema = new Schema<UserDocument>({
 
 userSchema.methods.addToCart = function (
   this: UserDocument,
-  product: { _id: Types.ObjectId }
+  product: { _id: Types.ObjectId },
 ) {
   const cartProductIndex = this.cart.items.findIndex((cp) => {
     return cp.productId.toString() === product._id.toString();
@@ -69,7 +74,7 @@ userSchema.methods.addToCart = function (
 
 userSchema.methods.removeFromCart = function (
   this: UserDocument,
-  productId: Types.ObjectId
+  productId: Types.ObjectId,
 ) {
   const updatedCartItems = this.cart.items.filter((item) => {
     return item.productId.toString() !== productId.toString();
