@@ -9,6 +9,18 @@ export const getLogin = (_req: Request, res: Response, _next: NextFunction) => {
   });
 };
 
+export const getSignup = (
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  res.render("auth/signup", {
+    path: "/signup",
+    pageTitle: "Signup",
+    isAuthenticated: false,
+  });
+};
+
 export const postLogin = async (req: Request, res: Response) => {
   try {
     const user = await User.findById("695f6b6871f02ca372daac24");
@@ -24,6 +36,30 @@ export const postLogin = async (req: Request, res: Response) => {
   } catch (err) {
     console.log(err);
     res.redirect("/login");
+  }
+};
+
+export const postSignup = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  try {
+    const { email, password, confirmPassword } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.redirect("/signup");
+    }
+    const user = new User({
+      email,
+      password,
+      cart: { items: [] },
+    });
+    await user.save();
+    res.redirect("/login");
+  } catch (err) {
+    console.log(err);
+    res.redirect("/signup");
   }
 };
 
