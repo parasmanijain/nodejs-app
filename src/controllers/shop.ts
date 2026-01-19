@@ -10,7 +10,6 @@ export const getProducts = async (
 ): Promise<void> => {
   try {
     const products = await Product.find();
-
     res.render("shop/product-list", {
       prods: products,
       pageTitle: "All Products",
@@ -30,12 +29,10 @@ export const getProduct = async (
   try {
     const prodId = req.params.productId;
     const product = await Product.findById(prodId);
-
     if (!product) {
       res.redirect("/products");
       return;
     }
-
     res.render("shop/product-detail", {
       product,
       pageTitle: product.title,
@@ -48,13 +45,12 @@ export const getProduct = async (
 };
 
 export const getIndex = async (
-  req: Request,
+  _req: Request,
   res: Response,
   _next: NextFunction,
 ): Promise<void> => {
   try {
     const products = await Product.find();
-
     res.render("shop/index", {
       prods: products,
       pageTitle: "Shop",
@@ -98,17 +94,13 @@ export const postCart = async (
       res.redirect("/login");
       return;
     }
-
     const prodId = req.body.productId;
     const product = await Product.findById(prodId);
-
     if (!product) {
       res.redirect("/products");
       return;
     }
-
     await req.user.addToCart(product);
-
     res.redirect("/cart");
   } catch (err) {
     console.error(err);
@@ -125,11 +117,8 @@ export const postCartDeleteProduct = async (
       res.redirect("/login");
       return;
     }
-
     const prodId = req.body.productId;
-
     await req.user.removeFromCart(prodId);
-
     res.redirect("/cart");
   } catch (err) {
     console.error(err);
@@ -146,29 +135,23 @@ export const postOrder = async (
       res.redirect("/login");
       return;
     }
-
     const user = await req.user.populate("cart.items.productId");
-
     const products = user.cart.items.map((i: CartItem) => {
       const productDoc = i.productId as any;
-
       return {
         quantity: i.quantity,
         product: { ...productDoc._doc },
       };
     });
-
     const order = new Order({
       user: {
-        name: req.user.name,
+        email: req.user.email,
         userId: req.user._id,
       },
       products,
     });
-
     await order.save();
     await req.user.clearCart();
-
     res.redirect("/orders");
   } catch (err) {
     console.error(err);
@@ -185,9 +168,7 @@ export const getOrders = async (
       res.redirect("/login");
       return;
     }
-
     const orders = await Order.find({ "user.userId": req.user._id });
-
     res.render("shop/orders", {
       path: "/orders",
       pageTitle: "Your Orders",

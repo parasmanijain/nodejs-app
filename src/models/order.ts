@@ -6,7 +6,7 @@ export interface OrderProduct {
 }
 
 export interface OrderUser {
-  name: string;
+  email: string;
   userId: Types.ObjectId;
 }
 
@@ -23,7 +23,7 @@ const orderSchema = new Schema<OrderDocument>({
     },
   ],
   user: {
-    name: {
+    email: {
       type: String,
       required: true,
     },
