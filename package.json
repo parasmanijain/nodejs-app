@@ -23,6 +23,7 @@
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.2",
     "@types/node": "^25.0.9",
+    "@types/nodemailer": "^7.0.5",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
@@ -40,6 +41,8 @@
     "express": "^5.2.1",
     "express-session": "^1.18.2",
     "mongoose": "^9.1.4",
+    "nodemailer": "^7.0.12",
+    "nodemailer-sendgrid-transport": "^0.2.0",
     "sass": "^1.97.2"
   }
 }

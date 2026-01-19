@@ -1,6 +1,21 @@
 import { NextFunction, Request, Response } from "express";
 import { compare, hash } from "bcryptjs";
+import { createTransport } from "nodemailer";
+import dotenv from "dotenv";
+const sendgridTransport = require("nodemailer-sendgrid-transport");
 import { User } from "../models/user";
+
+dotenv.config();
+
+const { SENDEMAIL_API_KEY } = process.env;
+
+const transporter = createTransport(
+  sendgridTransport({
+    auth: {
+      api_key: SENDEMAIL_API_KEY,
+    },
+  }),
+);
 
 export const getLogin = (req: Request, res: Response, _next: NextFunction) => {
   const messages = req.flash("error");
@@ -79,6 +94,12 @@ export const postSignup = async (
     });
     await user.save();
     res.redirect("/login");
+    return transporter.sendMail({
+      to: email,
+      from: "parasmani.jain2208@gmail.com",
+      subject: "Signup succeeded!",
+      html: "<h1>You successfully signed up!</h1>",
+    });
   } catch (err) {
     console.error(err);
     res.redirect("/signup");
