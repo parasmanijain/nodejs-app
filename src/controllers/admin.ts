@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { Product } from "../models/product";
 
 export const getAddProduct = (
-  req: Request,
+  _req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
@@ -10,7 +10,6 @@ export const getAddProduct = (
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
-    isAuthenticated: req.session.isLoggedIn,
   });
 };
 
@@ -32,9 +31,7 @@ export const postAddProduct = async (
       imageUrl,
       userId: req.user._id,
     });
-
     await product.save();
-
     console.log("Created Product");
     res.redirect("/admin/products");
   } catch (err) {
@@ -49,27 +46,21 @@ export const getEditProduct = async (
 ): Promise<void> => {
   try {
     const editMode = req.query.edit;
-
     if (!editMode) {
       res.redirect("/");
       return;
     }
-
     const prodId = req.params.productId;
-
     const product = await Product.findById(prodId);
-
     if (!product) {
       res.redirect("/");
       return;
     }
-
     res.render("admin/edit-product", {
       pageTitle: "Edit Product",
       path: "/admin/edit-product",
       editing: Boolean(editMode),
       product,
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -92,9 +83,7 @@ export const postEditProduct = async (
     product.price = Number(price);
     product.description = description;
     product.imageUrl = imageUrl;
-
     await product.save();
-
     console.log("UPDATED PRODUCT!");
     res.redirect("/admin/products");
   } catch (err) {
@@ -113,7 +102,6 @@ export const getProducts = async (
       prods: products,
       pageTitle: "Admin Products",
       path: "/admin/products",
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);

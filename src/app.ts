@@ -11,6 +11,7 @@ import { connect } from "mongoose";
 import session from "express-session";
 import connectMongoDBSession from "connect-mongodb-session";
 import csrf from "csurf";
+import flash from "connect-flash";
 import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -60,6 +61,7 @@ app.use(
 );
 
 app.use(csrfProtection);
+app.use(flash());
 
 app.use(async (req: Request, _res: Response, next: NextFunction) => {
   try {

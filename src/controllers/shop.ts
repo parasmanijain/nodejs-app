@@ -14,7 +14,6 @@ export const getProducts = async (
       prods: products,
       pageTitle: "All Products",
       path: "/products",
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -37,7 +36,6 @@ export const getProduct = async (
       product,
       pageTitle: product.title,
       path: "/products",
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -77,7 +75,6 @@ export const getCart = async (
       path: "/cart",
       pageTitle: "Your Cart",
       products,
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -173,7 +170,6 @@ export const getOrders = async (
       path: "/orders",
       pageTitle: "Your Orders",
       orders,
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);

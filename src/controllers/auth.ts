@@ -2,11 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import { compare, hash } from "bcryptjs";
 import { User } from "../models/user";
 
-export const getLogin = (_req: Request, res: Response, _next: NextFunction) => {
+export const getLogin = (req: Request, res: Response, _next: NextFunction) => {
   res.render("auth/login", {
     path: "/login",
     pageTitle: "Login",
-    isAuthenticated: false,
+    errorMessage: req.flash("error"),
   });
 };
 
@@ -18,7 +18,6 @@ export const getSignup = (
   res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
-    isAuthenticated: false,
   });
 };
 
@@ -30,6 +29,7 @@ export const postLogin = async (req: Request, res: Response) => {
     };
     const user = await User.findOne({ email });
     if (!user) {
+      req.flash("error", "Invalid email or password.");
       return res.redirect("/login");
     }
     const doMatch = await compare(password, user.password);

@@ -17,6 +17,7 @@
     "start": "cross-env NODE_ENV=production node dist/app.js"
   },
   "devDependencies": {
+    "@types/connect-flash": "^0.0.40",
     "@types/connect-mongodb-session": "^2.4.8",
     "@types/csurf": "^1.11.5",
     "@types/express": "^5.0.6",
@@ -31,6 +32,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "connect-flash": "^0.1.1",
     "connect-mongodb-session": "^5.0.0",
     "csurf": "^1.11.0",
     "dotenv": "^17.2.3",
