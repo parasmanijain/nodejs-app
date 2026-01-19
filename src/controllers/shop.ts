@@ -59,7 +59,6 @@ export const getIndex = async (
       prods: products,
       pageTitle: "Shop",
       path: "/",
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error(err);
@@ -76,11 +75,8 @@ export const getCart = async (
       res.redirect("/login");
       return;
     }
-
     const user = await req.user.populate("cart.items.productId");
-
     const products = user.cart.items;
-
     res.render("shop/cart", {
       path: "/cart",
       pageTitle: "Your Cart",

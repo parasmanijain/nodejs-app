@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 import { connect } from "mongoose";
 import session from "express-session";
 import connectMongoDBSession from "connect-mongodb-session";
+import csrf from "csurf";
 import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -42,6 +43,8 @@ const store = new MongoDBStore({
   collection: "sessions",
 });
 
+const csrfProtection = csrf();
+
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
 
@@ -56,6 +59,8 @@ app.use(
   }),
 );
 
+app.use(csrfProtection);
+
 app.use(async (req: Request, _res: Response, next: NextFunction) => {
   try {
     if (!req.session.userId) {
@@ -69,6 +74,12 @@ app.use(async (req: Request, _res: Response, next: NextFunction) => {
   } catch (err) {
     console.error(err);
   }
+});
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
 });
 
 app.use("/admin", adminRoutes);
