@@ -3,21 +3,22 @@ import { compare, hash } from "bcryptjs";
 import { User } from "../models/user";
 
 export const getLogin = (req: Request, res: Response, _next: NextFunction) => {
+  const messages = req.flash("error");
+  const message = messages.length > 0 ? messages[0] : null;
   res.render("auth/login", {
     path: "/login",
     pageTitle: "Login",
-    errorMessage: req.flash("error"),
+    errorMessage: message,
   });
 };
 
-export const getSignup = (
-  _req: Request,
-  res: Response,
-  _next: NextFunction,
-) => {
+export const getSignup = (req: Request, res: Response, _next: NextFunction) => {
+  const messages = req.flash("error");
+  const message = messages.length > 0 ? messages[0] : null;
   res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
+    errorMessage: message,
   });
 };
 
@@ -34,6 +35,7 @@ export const postLogin = async (req: Request, res: Response) => {
     }
     const doMatch = await compare(password, user.password);
     if (!doMatch) {
+      req.flash("error", "Invalid email or password.");
       return res.redirect("/login");
     }
     req.session.isLoggedIn = true;
@@ -61,10 +63,12 @@ export const postSignup = async (
     };
 
     if (password !== confirmPassword) {
+      req.flash("error", "Passwords don't match.");
       return res.redirect("/signup");
     }
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      req.flash("error", "E-Mail exists already, please pick a different one.");
       return res.redirect("/signup");
     }
     const hashedPassword = await hash(password, 12);
