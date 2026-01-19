@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { hash } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 import { User } from "../models/user";
 
 export const getLogin = (_req: Request, res: Response, _next: NextFunction) => {
@@ -24,18 +24,26 @@ export const getSignup = (
 
 export const postLogin = async (req: Request, res: Response) => {
   try {
-    const user = await User.findById("695f6b6871f02ca372daac24");
+    const { email, password } = req.body as {
+      email: string;
+      password: string;
+    };
+    const user = await User.findOne({ email });
     if (!user) {
+      return res.redirect("/login");
+    }
+    const doMatch = await compare(password, user.password);
+    if (!doMatch) {
       return res.redirect("/login");
     }
     req.session.isLoggedIn = true;
     req.session.userId = user._id.toString();
     req.session.save((err) => {
-      console.log(err);
+      if (err) console.error(err);
       res.redirect("/");
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.redirect("/login");
   }
 };
@@ -46,7 +54,15 @@ export const postSignup = async (
   _next: NextFunction,
 ) => {
   try {
-    const { email, password, confirmPassword } = req.body;
+    const { email, password, confirmPassword } = req.body as {
+      email: string;
+      password: string;
+      confirmPassword: string;
+    };
+
+    if (password !== confirmPassword) {
+      return res.redirect("/signup");
+    }
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.redirect("/signup");
@@ -60,14 +76,18 @@ export const postSignup = async (
     await user.save();
     res.redirect("/login");
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.redirect("/signup");
   }
 };
 
-export function postLogout(req: Request, res: Response, _next: NextFunction) {
+export const postLogout = (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
   req.session.destroy((err) => {
-    console.log(err);
+    if (err) console.error(err);
     res.redirect("/");
   });
-}
+};
