@@ -121,7 +121,6 @@ export const postLogout = (
 export const getReset = (req: Request, res: Response, _next: NextFunction) => {
   const messages = req.flash("error");
   const message = messages.length > 0 ? messages[0] : null;
-
   res.render("auth/reset", {
     path: "/reset",
     pageTitle: "Reset Password",
@@ -160,4 +159,65 @@ export const postReset = (req: Request, res: Response, _next: NextFunction) => {
       res.redirect("/reset");
     }
   });
+};
+
+export const getNewPassword = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  try {
+    const token = req.params.token as string;
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiration: { $gt: Date.now() },
+    });
+    if (!user) {
+      req.flash("error", "Invalid or expired token.");
+      return res.redirect("/reset");
+    }
+    const messages = req.flash("error");
+    const message = messages.length > 0 ? messages[0] : null;
+    res.render("auth/new-password", {
+      path: "/new-password",
+      pageTitle: "New Password",
+      errorMessage: message,
+      userId: user._id.toString(),
+    });
+  } catch (err) {
+    console.error(err);
+    res.redirect("/reset");
+  }
+};
+
+export const postNewPassword = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  try {
+    const { password, userId, passwordToken } = req.body as {
+      password: string;
+      userId: string;
+      passwordToken: string;
+    };
+    const user = await User.findOne({
+      resetToken: passwordToken,
+      resetTokenExpiration: { $gt: Date.now() },
+      _id: userId,
+    });
+    if (!user) {
+      req.flash("error", "Invalid or expired reset token.");
+      return res.redirect("/reset");
+    }
+    const hashedPassword = await hash(password, 12);
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpiration = undefined;
+    await user.save();
+    res.redirect("/login");
+  } catch (err) {
+    console.error(err);
+    res.redirect("/reset");
+  }
 };
