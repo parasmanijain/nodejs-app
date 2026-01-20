@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { Product } from "../models/product";
+import { validationResult } from "express-validator";
 
 export const getAddProduct = (
   _req: Request,
@@ -10,6 +11,9 @@ export const getAddProduct = (
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
+    hasError: false,
+    errorMessage: null,
+    validationErrors: [],
   });
 };
 
@@ -20,6 +24,24 @@ export const postAddProduct = async (
 ): Promise<void> => {
   try {
     const { title, imageUrl, price, description } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log(errors.array());
+      return res.status(422).render("admin/edit-product", {
+        pageTitle: "Add Product",
+        path: "/admin/edit-product",
+        editing: false,
+        hasError: true,
+        product: {
+          title: title,
+          imageUrl: imageUrl,
+          price: price,
+          description: description,
+        },
+        errorMessage: errors.array()[0].msg,
+        validationErrors: errors.array(),
+      });
+    }
     if (!req.user) {
       res.redirect("/login");
       return;
@@ -61,6 +83,9 @@ export const getEditProduct = async (
       path: "/admin/edit-product",
       editing: Boolean(editMode),
       product,
+      hasError: false,
+      errorMessage: null,
+      validationErrors: [],
     });
   } catch (err) {
     console.error(err);
@@ -74,6 +99,26 @@ export const postEditProduct = async (
 ): Promise<void> => {
   try {
     const { productId, title, price, imageUrl, description } = req.body;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(422).render("admin/edit-product", {
+        pageTitle: "Edit Product",
+        path: "/admin/edit-product",
+        editing: true,
+        hasError: true,
+        product: {
+          title,
+          imageUrl,
+          price,
+          description,
+          _id: productId,
+        },
+        errorMessage: errors.array()[0].msg,
+        validationErrors: errors.array(),
+      });
+    }
+
     const product = await Product.findById(productId);
     if (!product || product.userId.toString() !== req.user._id.toString()) {
       return res.redirect("/");
