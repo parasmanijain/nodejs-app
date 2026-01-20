@@ -10,9 +10,10 @@ export interface Cart {
 }
 
 export interface UserDocument extends Document {
-  name: string;
   password: string;
   email: string;
+  resetToken?: string;
+  resetTokenExpiration?: number;
   cart: Cart;
 
   addToCart(product: { _id: Types.ObjectId }): Promise<UserDocument>;
@@ -21,10 +22,6 @@ export interface UserDocument extends Document {
 }
 
 const userSchema = new Schema<UserDocument>({
-  name: {
-    type: String,
-    required: false,
-  },
   email: {
     type: String,
     required: true,
@@ -33,6 +30,8 @@ const userSchema = new Schema<UserDocument>({
     type: String,
     required: true,
   },
+  resetToken: String,
+  resetTokenExpiration: Date,
   cart: {
     items: [
       {

@@ -2,12 +2,13 @@ import { NextFunction, Request, Response } from "express";
 import { compare, hash } from "bcryptjs";
 import { createTransport } from "nodemailer";
 import dotenv from "dotenv";
+import { randomBytes } from "crypto";
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 import { User } from "../models/user";
 
 dotenv.config();
 
-const { SENDEMAIL_API_KEY } = process.env;
+const { SENDEMAIL_API_KEY, SENDEMAIL_EMAIL_ADDRESS } = process.env;
 
 const transporter = createTransport(
   sendgridTransport({
@@ -96,7 +97,7 @@ export const postSignup = async (
     res.redirect("/login");
     return transporter.sendMail({
       to: email,
-      from: "parasmani.jain2208@gmail.com",
+      from: SENDEMAIL_EMAIL_ADDRESS,
       subject: "Signup succeeded!",
       html: "<h1>You successfully signed up!</h1>",
     });
@@ -125,5 +126,38 @@ export const getReset = (req: Request, res: Response, _next: NextFunction) => {
     path: "/reset",
     pageTitle: "Reset Password",
     errorMessage: message,
+  });
+};
+
+export const postReset = (req: Request, res: Response, _next: NextFunction) => {
+  randomBytes(32, async (err, buffer) => {
+    if (err) {
+      console.error(err);
+      return res.redirect("/reset");
+    }
+    const token = buffer.toString("hex");
+    try {
+      const user = await User.findOne({ email: req.body.email });
+      if (!user) {
+        req.flash("error", "No account with that email found.");
+        return res.redirect("/reset");
+      }
+      user.resetToken = token;
+      user.resetTokenExpiration = Date.now() + 3600000; // 1 hour
+      await user.save();
+      res.redirect("/");
+      await transporter.sendMail({
+        to: req.body.email,
+        from: SENDEMAIL_EMAIL_ADDRESS,
+        subject: "Password reset",
+        html: `
+          <p>You requested a password reset</p>
+          <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password.</p>
+        `,
+      });
+    } catch (error) {
+      console.error(error);
+      res.redirect("/reset");
+    }
   });
 };
