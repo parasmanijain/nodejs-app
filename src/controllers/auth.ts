@@ -73,10 +73,9 @@ export const postSignup = async (
   _next: NextFunction,
 ) => {
   try {
-    const { email, password, confirmPassword } = req.body as {
+    const { email, password } = req.body as {
       email: string;
       password: string;
-      confirmPassword: string;
     };
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -87,15 +86,6 @@ export const postSignup = async (
         errorMessage: errors.array()[0].msg,
       });
     }
-    if (password !== confirmPassword) {
-      req.flash("error", "Passwords don't match.");
-      return res.redirect("/signup");
-    }
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      req.flash("error", "E-Mail exists already, please pick a different one.");
-      return res.redirect("/signup");
-    }
     const hashedPassword = await hash(password, 12);
     const user = new User({
       email,
@@ -104,15 +94,8 @@ export const postSignup = async (
     });
     await user.save();
     res.redirect("/login");
-    return transporter.sendMail({
-      to: email,
-      from: SENDEMAIL_EMAIL_ADDRESS,
-      subject: "Signup succeeded!",
-      html: "<h1>You successfully signed up!</h1>",
-    });
   } catch (err) {
     console.error(err);
-    res.redirect("/signup");
   }
 };
 
