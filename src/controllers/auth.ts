@@ -45,6 +45,14 @@ export const postLogin = async (req: Request, res: Response) => {
       email: string;
       password: string;
     };
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).render("auth/login", {
+        path: "/login",
+        pageTitle: "Login",
+        errorMessage: errors.array()[0].msg,
+      });
+    }
     const user = await User.findOne({ email });
     if (!user) {
       req.flash("error", "Invalid email or password.");
@@ -84,6 +92,11 @@ export const postSignup = async (
         path: "/signup",
         pageTitle: "Signup",
         errorMessage: errors.array()[0].msg,
+        oldInput: {
+          email: email,
+          password: password,
+          confirmPassword: req.body.confirmPassword,
+        },
       });
     }
     const hashedPassword = await hash(password, 12);
