@@ -57,7 +57,7 @@ export const postAddProduct = async (
     console.log("Created Product");
     res.redirect("/admin/products");
   } catch (err) {
-    console.error(err);
+    res.redirect("/500");
   }
 };
 

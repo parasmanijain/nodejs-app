@@ -17,7 +17,7 @@ import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
 import { router as authRoutes } from "./routes/auth";
 import { viewsPath } from "./util/path";
-import { get404 } from "./controllers/error";
+import { get404, get500 } from "./controllers/error";
 
 dotenv.config();
 
@@ -88,6 +88,7 @@ app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
+app.get("/500", get500);
 app.use(get404);
 
 async function startServer() {
