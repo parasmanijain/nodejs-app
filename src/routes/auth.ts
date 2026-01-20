@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { body, check, CustomValidator } from "express-validator";
+import { body, check } from "express-validator";
 import {
   getLogin,
   getNewPassword,
@@ -36,21 +36,21 @@ router.post(
     check("email")
       .isEmail()
       .withMessage("Please enter a valid email.")
-      .custom((async (value: string) => {
+      .custom(async (value) => {
         const userDoc = await User.findOne({ email: value });
         if (userDoc) {
-          return Promise.reject(
+          throw new Error(
             "E-Mail exists already, please pick a different one.",
           );
         }
-      }) as CustomValidator),
+      }),
     body(
       "password",
       "Please enter a password with only numbers and text and at least 5 characters.",
     )
       .isLength({ min: 5 })
       .isAlphanumeric(),
-    body("confirmPassword").custom((value: string, { req }) => {
+    body("confirmPassword").custom((value, { req }) => {
       if (value !== req.body.password) {
         throw new Error("Passwords have to match!");
       }
@@ -69,5 +69,3 @@ router.post("/reset", postReset);
 router.get("/reset/:token", getNewPassword);
 
 router.post("/new-password", postNewPassword);
-
-export default router;
