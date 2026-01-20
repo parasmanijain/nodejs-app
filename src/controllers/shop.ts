@@ -2,11 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import { Product } from "../models/product";
 import { Order } from "../models/order";
 import { CartItem } from "../models/user";
+import { HttpError } from "../types/http-error";
 
 export const getProducts = async (
-  req: Request,
+  _req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const products = await Product.find();
@@ -16,14 +17,18 @@ export const getProducts = async (
       path: "/products",
     });
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const getProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const prodId = req.params.productId;
@@ -38,14 +43,18 @@ export const getProduct = async (
       path: "/products",
     });
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const getIndex = async (
   _req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const products = await Product.find();
@@ -55,14 +64,18 @@ export const getIndex = async (
       path: "/",
     });
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const getCart = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -77,14 +90,18 @@ export const getCart = async (
       products,
     });
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const postCart = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -100,14 +117,18 @@ export const postCart = async (
     await req.user.addToCart(product);
     res.redirect("/cart");
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const postCartDeleteProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -118,14 +139,18 @@ export const postCartDeleteProduct = async (
     await req.user.removeFromCart(prodId);
     res.redirect("/cart");
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const postOrder = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -151,14 +176,18 @@ export const postOrder = async (
     await req.user.clearCart();
     res.redirect("/orders");
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const getOrders = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -172,6 +201,10 @@ export const getOrders = async (
       orders,
     });
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };

@@ -4,6 +4,7 @@ import express, {
   Request,
   Response,
   NextFunction,
+  ErrorRequestHandler,
 } from "express";
 import { join } from "path";
 import dotenv from "dotenv";
@@ -63,6 +64,12 @@ app.use(
 app.use(csrfProtection);
 app.use(flash());
 
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
 app.use(async (req: Request, _res: Response, next: NextFunction) => {
   try {
     if (!req.session.userId) {
@@ -74,14 +81,11 @@ app.use(async (req: Request, _res: Response, next: NextFunction) => {
     }
     next();
   } catch (err) {
-    console.error(err);
+    if (err instanceof Error) {
+      next(err);
+    }
+    next(new Error(String(err)));
   }
-});
-
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
 });
 
 app.use("/admin", adminRoutes);
@@ -90,6 +94,21 @@ app.use(authRoutes);
 
 app.get("/500", get500);
 app.use(get404);
+
+app.use(
+  (
+    _error: ErrorRequestHandler,
+    req: Request,
+    res: Response,
+    _next: NextFunction,
+  ) => {
+    res.status(500).render("500", {
+      pageTitle: "Error!",
+      path: "/500",
+      isAuthenticated: req.session.isLoggedIn,
+    });
+  },
+);
 
 async function startServer() {
   try {

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { Product } from "../models/product";
 import { validationResult } from "express-validator";
+import { HttpError } from "../types/http-error";
+import { Product } from "../models/product";
 
 export const getAddProduct = (
   _req: Request,
@@ -20,7 +21,7 @@ export const getAddProduct = (
 export const postAddProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { title, imageUrl, price, description } = req.body;
@@ -57,14 +58,18 @@ export const postAddProduct = async (
     console.log("Created Product");
     res.redirect("/admin/products");
   } catch (err) {
-    res.redirect("/500");
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const getEditProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const editMode = req.query.edit;
@@ -88,14 +93,18 @@ export const getEditProduct = async (
       validationErrors: [],
     });
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const postEditProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { productId, title, price, imageUrl, description } = req.body;
@@ -131,14 +140,18 @@ export const postEditProduct = async (
     console.log("UPDATED PRODUCT!");
     res.redirect("/admin/products");
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const getProducts = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const products = await Product.find({ userId: req.user._id });
@@ -148,14 +161,18 @@ export const getProducts = async (
       path: "/admin/products",
     });
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const postDeleteProduct = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { productId } = req.body;
@@ -163,6 +180,10 @@ export const postDeleteProduct = async (
     console.log("DESTROYED PRODUCT");
     res.redirect("/admin/products");
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };

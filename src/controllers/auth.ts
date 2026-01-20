@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { randomBytes } from "crypto";
 import { validationResult } from "express-validator";
 const sendgridTransport = require("nodemailer-sendgrid-transport");
+import { HttpError } from "../types/http-error";
 import { User } from "../models/user";
 
 dotenv.config();
@@ -50,22 +51,20 @@ export const getSignup = (req: Request, res: Response, _next: NextFunction) => {
   });
 };
 
-export const postLogin = async (req: Request, res: Response) => {
+export const postLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const { email, password } = req.body as {
-      email: string;
-      password: string;
-    };
+    const { email, password } = req.body as { email: string; password: string };
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).render("auth/login", {
         path: "/login",
         pageTitle: "Login",
         errorMessage: errors.array()[0].msg,
-        oldInput: {
-          email: email,
-          password: password,
-        },
+        oldInput: { email, password },
         validationErrors: errors.array(),
       });
     }
@@ -75,10 +74,7 @@ export const postLogin = async (req: Request, res: Response) => {
         path: "/login",
         pageTitle: "Login",
         errorMessage: "Invalid email or password.",
-        oldInput: {
-          email: email,
-          password: password,
-        },
+        oldInput: { email, password },
         validationErrors: [],
       });
     }
@@ -88,45 +84,38 @@ export const postLogin = async (req: Request, res: Response) => {
         path: "/login",
         pageTitle: "Login",
         errorMessage: "Invalid email or password.",
-        oldInput: {
-          email: email,
-          password: password,
-        },
+        oldInput: { email, password },
         validationErrors: [],
       });
     }
     req.session.isLoggedIn = true;
     req.session.userId = user._id.toString();
-    req.session.save((err) => {
-      if (err) console.error(err);
-      res.redirect("/");
-    });
+    req.session.save(() => res.redirect("/"));
   } catch (err) {
-    console.error(err);
-    res.redirect("/login");
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const postSignup = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ) => {
   try {
-    const { email, password } = req.body as {
-      email: string;
-      password: string;
-    };
+    const { email, password } = req.body as { email: string; password: string };
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log(errors.array());
       return res.status(422).render("auth/signup", {
         path: "/signup",
         pageTitle: "Signup",
         errorMessage: errors.array()[0].msg,
         oldInput: {
-          email: email,
-          password: password,
+          email,
+          password,
           confirmPassword: req.body.confirmPassword,
         },
         validationErrors: errors.array(),
@@ -141,7 +130,11 @@ export const postSignup = async (
     await user.save();
     res.redirect("/login");
   } catch (err) {
-    console.error(err);
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -166,21 +159,22 @@ export const getReset = (req: Request, res: Response, _next: NextFunction) => {
   });
 };
 
-export const postReset = (req: Request, res: Response, _next: NextFunction) => {
+export const postReset = (req: Request, res: Response, next: NextFunction) => {
   randomBytes(32, async (err, buffer) => {
     if (err) {
-      console.error(err);
-      return res.redirect("/reset");
+      const error: HttpError = new Error(err.message);
+      error.httpStatusCode = 500;
+      return next(error);
     }
-    const token = buffer.toString("hex");
     try {
+      const token = buffer.toString("hex");
       const user = await User.findOne({ email: req.body.email });
       if (!user) {
         req.flash("error", "No account with that email found.");
         return res.redirect("/reset");
       }
       user.resetToken = token;
-      user.resetTokenExpiration = Date.now() + 3600000; // 1 hour
+      user.resetTokenExpiration = Date.now() + 3600000;
       await user.save();
       res.redirect("/");
       await transporter.sendMail({
@@ -192,9 +186,12 @@ export const postReset = (req: Request, res: Response, _next: NextFunction) => {
           <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password.</p>
         `,
       });
-    } catch (error) {
-      console.error(error);
-      res.redirect("/reset");
+    } catch (err) {
+      const error: HttpError = new Error(
+        err instanceof Error ? err.message : String(err),
+      );
+      error.httpStatusCode = 500;
+      return next(error);
     }
   });
 };
@@ -202,7 +199,7 @@ export const postReset = (req: Request, res: Response, _next: NextFunction) => {
 export const getNewPassword = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ) => {
   try {
     const token = req.params.token as string;
@@ -223,15 +220,18 @@ export const getNewPassword = async (
       userId: user._id.toString(),
     });
   } catch (err) {
-    console.error(err);
-    res.redirect("/reset");
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
 export const postNewPassword = async (
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ) => {
   try {
     const { password, userId, passwordToken } = req.body as {
@@ -255,7 +255,10 @@ export const postNewPassword = async (
     await user.save();
     res.redirect("/login");
   } catch (err) {
-    console.error(err);
-    res.redirect("/reset");
+    const error: HttpError = new Error(
+      err instanceof Error ? err.message : String(err),
+    );
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
