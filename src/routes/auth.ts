@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getLogin,
+  getReset,
   getSignup,
   postLogin,
   postLogout,
@@ -18,3 +19,5 @@ router.post("/login", postLogin);
 router.post("/signup", postSignup);
 
 router.post("/logout", postLogout);
+
+router.get("/reset", getReset);
