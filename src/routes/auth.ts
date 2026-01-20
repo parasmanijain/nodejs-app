@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { check } from "express-validator";
 import {
   getLogin,
   getNewPassword,
@@ -19,7 +20,7 @@ router.get("/signup", getSignup);
 
 router.post("/login", postLogin);
 
-router.post("/signup", postSignup);
+router.post("/signup", check("email").isEmail(), postSignup);
 
 router.post("/logout", postLogout);
 

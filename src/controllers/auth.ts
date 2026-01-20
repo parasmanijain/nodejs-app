@@ -3,6 +3,7 @@ import { compare, hash } from "bcryptjs";
 import { createTransport } from "nodemailer";
 import dotenv from "dotenv";
 import { randomBytes } from "crypto";
+import { validationResult } from "express-validator";
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 import { User } from "../models/user";
 
@@ -77,7 +78,15 @@ export const postSignup = async (
       password: string;
       confirmPassword: string;
     };
-
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log(errors.array());
+      return res.status(422).render("auth/signup", {
+        path: "/signup",
+        pageTitle: "Signup",
+        errorMessage: errors.array(),
+      });
+    }
     if (password !== confirmPassword) {
       req.flash("error", "Passwords don't match.");
       return res.redirect("/signup");
