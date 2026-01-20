@@ -75,9 +75,8 @@ export const postEditProduct = async (
   try {
     const { productId, title, price, imageUrl, description } = req.body;
     const product = await Product.findById(productId);
-    if (!product) {
-      res.redirect("/");
-      return;
+    if (!product || product.userId.toString() !== req.user._id.toString()) {
+      return res.redirect("/");
     }
     product.title = title;
     product.price = Number(price);
@@ -97,7 +96,7 @@ export const getProducts = async (
   _next: NextFunction,
 ): Promise<void> => {
   try {
-    const products = await Product.find();
+    const products = await Product.find({ userId: req.user._id });
     res.render("admin/products", {
       prods: products,
       pageTitle: "Admin Products",
@@ -115,7 +114,7 @@ export const postDeleteProduct = async (
 ): Promise<void> => {
   try {
     const { productId } = req.body;
-    await Product.findByIdAndDelete(productId);
+    await Product.deleteOne({ _id: productId, userId: req.user._id });
     console.log("DESTROYED PRODUCT");
     res.redirect("/admin/products");
   } catch (err) {
