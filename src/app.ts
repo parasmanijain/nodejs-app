@@ -13,7 +13,7 @@ import session from "express-session";
 import connectMongoDBSession from "connect-mongodb-session";
 import csrf from "csurf";
 import flash from "connect-flash";
-import multer, { diskStorage } from "multer";
+import multer, { diskStorage, Options } from "multer";
 import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -53,16 +53,30 @@ const fileStorage = diskStorage({
     cb(null, "images");
   },
   filename: (_req, file, cb) => {
-    cb(null, new Date().toISOString() + "-" + file.originalname);
+    const safeDate = new Date().toISOString().replace(/:/g, "-");
+    cb(null, `${safeDate}-${file.originalname}`);
   },
 });
+
+const fileFilter: Options["fileFilter"] = (_req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
 
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
 
 app.use(urlencoded({ extended: false }));
-app.use(multer({ storage: fileStorage }).single("image"));
+app.use(multer({ storage: fileStorage, fileFilter }).single("image"));
 app.use(express_static(join(__dirname, "public")));
+app.use("/images", express_static(join(__dirname, "images")));
 app.use(
   session({
     secret: "my secret",
@@ -76,7 +90,7 @@ app.use(csrfProtection);
 app.use(flash());
 
 app.use((req: Request, res: Response, next: NextFunction) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.isAuthenticated = req.session?.isLoggedIn;
   res.locals.csrfToken = req.csrfToken();
   next();
 });
@@ -92,6 +106,7 @@ app.use(async (req: Request, _res: Response, next: NextFunction) => {
     }
     next();
   } catch (err) {
+    console.log("Middleware error", err);
     if (err instanceof Error) {
       next(err);
     }
@@ -108,15 +123,16 @@ app.use(get404);
 
 app.use(
   (
-    _error: ErrorRequestHandler,
+    error: ErrorRequestHandler,
     req: Request,
     res: Response,
     _next: NextFunction,
   ) => {
+    console.log("Global error", error);
     res.status(500).render("500", {
       pageTitle: "Error!",
       path: "/500",
-      isAuthenticated: req.session.isLoggedIn,
+      isAuthenticated: req.session?.isLoggedIn,
     });
   },
 );
