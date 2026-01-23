@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
-import { basename } from "path";
+import { basename, join } from "path";
 import { HttpError } from "../types/http-error";
 import { Product } from "../models/product";
 import { deleteFile } from "../util/file";
+import { imagesDir } from "../util/path";
 
 interface AddProductBody {
   title: string;
@@ -53,7 +54,6 @@ export const postAddProduct = async (
     }
 
     if (!errors.isEmpty()) {
-      console.log(errors.array());
       return res.status(422).render("admin/edit-product", {
         pageTitle: "Add Product",
         path: "/admin/edit-product",
@@ -72,11 +72,12 @@ export const postAddProduct = async (
       res.redirect("/login");
       return;
     }
+    const imagePath = `/${join(basename(imagesDir), basename(image.path))}`;
     const product = new Product({
       title,
       price: Number(price),
       description,
-      imageUrl: `/images/${basename(image.path)}`,
+      imageUrl: imagePath,
       userId: req.user._id,
     });
     await product.save();
@@ -165,8 +166,10 @@ export const postEditProduct = async (
     product.price = Number(price);
     product.description = description;
     if (image) {
-      deleteFile(product.imageUrl);
-      product.imageUrl = image.path;
+      const oldImagePath = `${imagesDir}/${basename(product.imageUrl)}`;
+      const newImagePath = `/${join(basename(imagesDir), basename(image.path))}`;
+      deleteFile(oldImagePath);
+      product.imageUrl = newImagePath;
     }
     await product.save();
     console.log("UPDATED PRODUCT!");
@@ -223,7 +226,8 @@ export const postDeleteProduct = async (
       res.redirect("/");
       return;
     }
-    deleteFile(product.imageUrl);
+    const imagePath = `${imagesDir}/${basename(product.imageUrl)}`;
+    deleteFile(imagePath);
     await Product.deleteOne({
       _id: req.body.productId,
       userId: req.user._id,
