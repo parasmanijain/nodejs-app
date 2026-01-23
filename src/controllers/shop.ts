@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import { createWriteStream } from "fs";
 import PDFDocument from "pdfkit";
 import { HttpError } from "../types/http-error";
+import { invoicesDir } from "../util/path";
 import { Product } from "../models/product";
 import { Order } from "../models/order";
 import { CartItem } from "../models/user";
@@ -233,7 +234,7 @@ export const getInvoice = async (
       return next(new Error("Unauthorized"));
     }
     const invoiceName = "invoice-" + orderId + ".pdf";
-    const invoicePath = join("data", "invoices", invoiceName);
+    const invoicePath = join(invoicesDir, invoiceName);
     const pdfDoc = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(

@@ -19,7 +19,7 @@ import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
 import { router as authRoutes } from "./routes/auth";
-import { viewsPath } from "./util/path";
+import { imagesDir, invoicesDir, viewsPath } from "./util/path";
 import { get404, get500 } from "./controllers/error";
 
 dotenv.config();
@@ -49,26 +49,11 @@ const store = new MongoDBStore({
 
 const csrfProtection = csrf();
 
-const isProd = process.env.NODE_ENV === "production";
-const imagesDir = isProd
-  ? join(__dirname, "images") // dist/images in production
-  : join(process.cwd(), "src", "images"); // src/images in development
-
 if (!existsSync(imagesDir)) {
   mkdirSync(imagesDir, { recursive: true });
   console.log(`Created images directory at: ${imagesDir}`);
 }
 
-const dataDir = isProd
-  ? join(__dirname, "data") // dist/data in production
-  : join(process.cwd(), "src", "data"); // src/data in development
-
-if (!existsSync(dataDir)) {
-  mkdirSync(dataDir, { recursive: true });
-  console.log(`Created data directory at: ${dataDir}`);
-}
-
-const invoicesDir = join(dataDir, "invoices");
 if (!existsSync(invoicesDir)) {
   mkdirSync(invoicesDir, { recursive: true });
   console.log(`Created invoices directory at: ${invoicesDir}`);
