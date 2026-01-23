@@ -3,6 +3,7 @@ import { validationResult } from "express-validator";
 import { basename } from "path";
 import { HttpError } from "../types/http-error";
 import { Product } from "../models/product";
+import { deleteFile } from "../util/file";
 
 interface AddProductBody {
   title: string;
@@ -164,7 +165,8 @@ export const postEditProduct = async (
     product.price = Number(price);
     product.description = description;
     if (image) {
-      product.imageUrl = `/images/${basename(image.path)}`;
+      deleteFile(product.imageUrl);
+      product.imageUrl = image.path;
     }
     await product.save();
     console.log("UPDATED PRODUCT!");
@@ -213,6 +215,15 @@ export const postDeleteProduct = async (
       res.redirect("/login");
       return;
     }
+    const product = await Product.findById(req.body.productId);
+    if (!product) {
+      return next(new Error("Product not found."));
+    }
+    if (product.userId.toString() !== req.user._id.toString()) {
+      res.redirect("/");
+      return;
+    }
+    deleteFile(product.imageUrl);
     await Product.deleteOne({
       _id: req.body.productId,
       userId: req.user._id,
