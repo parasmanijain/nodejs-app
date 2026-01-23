@@ -1,3 +1,4 @@
+import { Multer } from "multer";
 import { UserDocument } from "../../models/user";
 
 declare global {
@@ -5,6 +6,7 @@ declare global {
     interface Request {
       user?: UserDocument;
       isLoggedIn?: boolean;
+      file?: Multer.File;
     }
   }
 }

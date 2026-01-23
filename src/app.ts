@@ -13,6 +13,7 @@ import session from "express-session";
 import connectMongoDBSession from "connect-mongodb-session";
 import csrf from "csurf";
 import flash from "connect-flash";
+import multer, { diskStorage } from "multer";
 import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -47,10 +48,20 @@ const store = new MongoDBStore({
 
 const csrfProtection = csrf();
 
+const fileStorage = diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, "images");
+  },
+  filename: (_req, file, cb) => {
+    cb(null, new Date().toISOString() + "-" + file.originalname);
+  },
+});
+
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
 
 app.use(urlencoded({ extended: false }));
+app.use(multer({ storage: fileStorage }).single("image"));
 app.use(express_static(join(__dirname, "public")));
 app.use(
   session({

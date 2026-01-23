@@ -1,4 +1,5 @@
 import { Schema, model, Document, Types } from "mongoose";
+import { ProductDocument } from "./product";
 
 export interface CartItem {
   productId: Types.ObjectId;
@@ -9,17 +10,20 @@ export interface Cart {
   items: CartItem[];
 }
 
-export interface UserDocument extends Document {
+export interface User {
   password: string;
   email: string;
   resetToken?: string;
   resetTokenExpiration?: number;
   cart: Cart;
-
-  addToCart(product: { _id: Types.ObjectId }): Promise<UserDocument>;
-  removeFromCart(productId: Types.ObjectId): Promise<UserDocument>;
-  clearCart(): Promise<UserDocument>;
 }
+
+export type UserDocument = User &
+  Document & {
+    addToCart(product: ProductDocument): Promise<UserDocument>;
+    removeFromCart(productId: Types.ObjectId): Promise<UserDocument>;
+    clearCart(): Promise<UserDocument>;
+  };
 
 const userSchema = new Schema<UserDocument>({
   email: {

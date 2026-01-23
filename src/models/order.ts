@@ -1,10 +1,15 @@
 import { Schema, model, Document, Types } from "mongoose";
 
 export interface OrderProduct {
-  product: any;
+  product: {
+    _id: Types.ObjectId;
+    title: string;
+    price: number;
+    description: string;
+    imageUrl: string;
+  };
   quantity: number;
 }
-
 export interface OrderUser {
   email: string;
   userId: Types.ObjectId;
