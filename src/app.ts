@@ -7,6 +7,7 @@ import express, {
   ErrorRequestHandler,
 } from "express";
 import { join } from "path";
+import { mkdirSync, existsSync } from "fs";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
 import session from "express-session";
@@ -48,9 +49,19 @@ const store = new MongoDBStore({
 
 const csrfProtection = csrf();
 
+const isProd = process.env.NODE_ENV === "production";
+const imagesDir = isProd
+  ? join(__dirname, "images") // dist/images in production
+  : join(process.cwd(), "src", "images"); // src/images in development
+
+if (!existsSync(imagesDir)) {
+  mkdirSync(imagesDir, { recursive: true });
+  console.log(`Created images directory at: ${imagesDir}`);
+}
+
 const fileStorage = diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, "images");
+    cb(null, imagesDir);
   },
   filename: (_req, file, cb) => {
     const safeDate = new Date().toISOString().replace(/:/g, "-");
@@ -76,7 +87,7 @@ app.set("views", viewsPath);
 app.use(urlencoded({ extended: false }));
 app.use(multer({ storage: fileStorage, fileFilter }).single("image"));
 app.use(express_static(join(__dirname, "public")));
-app.use("/images", express_static(join(__dirname, "images")));
+app.use("/images", express_static(imagesDir));
 app.use(
   session({
     secret: "my secret",

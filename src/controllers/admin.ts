@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
+import { basename } from "path";
 import { HttpError } from "../types/http-error";
 import { Product } from "../models/product";
 
@@ -74,7 +75,7 @@ export const postAddProduct = async (
       title,
       price: Number(price),
       description,
-      imageUrl: image.path,
+      imageUrl: `/images/${basename(image.path)}`,
       userId: req.user._id,
     });
     await product.save();
@@ -163,7 +164,7 @@ export const postEditProduct = async (
     product.price = Number(price);
     product.description = description;
     if (image) {
-      product.imageUrl = image.path;
+      product.imageUrl = `/images/${basename(image.path)}`;
     }
     await product.save();
     console.log("UPDATED PRODUCT!");
