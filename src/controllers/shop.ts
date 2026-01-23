@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import { Product } from "../models/product";
-import { Order } from "../models/order";
-import { CartItem } from "../models/user";
+import { join } from "path";
+import { readFile } from "fs/promises";
+import { Types } from "mongoose";
 import { HttpError } from "../types/http-error";
+import { Product, ProductDocument } from "../models/product";
+import { Order } from "../models/order";
+import { CartItem, UserDocument } from "../models/user";
 
 export const getProducts = async (
   _req: Request,
@@ -21,7 +24,7 @@ export const getProducts = async (
       err instanceof Error ? err.message : String(err),
     );
     error.httpStatusCode = 500;
-    return next(error);
+    next(error);
   }
 };
 
@@ -47,7 +50,7 @@ export const getProduct = async (
       err instanceof Error ? err.message : String(err),
     );
     error.httpStatusCode = 500;
-    return next(error);
+    next(error);
   }
 };
 
@@ -68,7 +71,7 @@ export const getIndex = async (
       err instanceof Error ? err.message : String(err),
     );
     error.httpStatusCode = 500;
-    return next(error);
+    next(error);
   }
 };
 
@@ -94,7 +97,7 @@ export const getCart = async (
       err instanceof Error ? err.message : String(err),
     );
     error.httpStatusCode = 500;
-    return next(error);
+    next(error);
   }
 };
 
@@ -108,7 +111,7 @@ export const postCart = async (
       res.redirect("/login");
       return;
     }
-    const prodId = req.body.productId;
+    const prodId: string = req.body.productId;
     const product = await Product.findById(prodId);
     if (!product) {
       res.redirect("/products");
@@ -121,7 +124,7 @@ export const postCart = async (
       err instanceof Error ? err.message : String(err),
     );
     error.httpStatusCode = 500;
-    return next(error);
+    next(error);
   }
 };
 
@@ -135,7 +138,7 @@ export const postCartDeleteProduct = async (
       res.redirect("/login");
       return;
     }
-    const prodId = req.body.productId;
+    const prodId: string = req.body.productId;
     await req.user.removeFromCart(prodId);
     res.redirect("/cart");
   } catch (err) {
@@ -143,7 +146,7 @@ export const postCartDeleteProduct = async (
       err instanceof Error ? err.message : String(err),
     );
     error.httpStatusCode = 500;
-    return next(error);
+    next(error);
   }
 };
 
@@ -180,7 +183,7 @@ export const postOrder = async (
       err instanceof Error ? err.message : String(err),
     );
     error.httpStatusCode = 500;
-    return next(error);
+    next(error);
   }
 };
 
@@ -194,7 +197,9 @@ export const getOrders = async (
       res.redirect("/login");
       return;
     }
-    const orders = await Order.find({ "user.userId": req.user._id });
+    const orders = await Order.find({
+      "user.userId": req.user._id as Types.ObjectId,
+    });
     res.render("shop/orders", {
       path: "/orders",
       pageTitle: "Your Orders",
@@ -205,6 +210,34 @@ export const getOrders = async (
       err instanceof Error ? err.message : String(err),
     );
     error.httpStatusCode = 500;
-    return next(error);
+    next(error);
+  }
+};
+
+export const getInvoice = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      return next(new Error("Unauthorized"));
+    }
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return next(new Error("No order found."));
+    }
+    if (order.user.userId.toString() !== req.user._id.toString()) {
+      return next(new Error("Unauthorized"));
+    }
+    const invoiceName = `invoice-${orderId}.pdf`;
+    const invoicePath = join("data", "invoices", invoiceName);
+    const fileBuffer = await readFile(invoicePath);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
+    res.send(fileBuffer);
+  } catch (err) {
+    next(err);
   }
 };
