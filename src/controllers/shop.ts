@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { join } from "path";
-import { readFile } from "fs/promises";
 import { Types } from "mongoose";
+import { createReadStream } from "fs";
+import PDFDocument from "pdfkit";
 import { HttpError } from "../types/http-error";
-import { Product, ProductDocument } from "../models/product";
+import { Product } from "../models/product";
 import { Order } from "../models/order";
-import { CartItem, UserDocument } from "../models/user";
+import { CartItem } from "../models/user";
 
 export const getProducts = async (
   _req: Request,
@@ -231,12 +232,15 @@ export const getInvoice = async (
     if (order.user.userId.toString() !== req.user._id.toString()) {
       return next(new Error("Unauthorized"));
     }
-    const invoiceName = `invoice-${orderId}.pdf`;
+    const invoiceName = "invoice-" + orderId + ".pdf";
     const invoicePath = join("data", "invoices", invoiceName);
-    const fileBuffer = await readFile(invoicePath);
+    const file = createReadStream(invoicePath);
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
-    res.send(fileBuffer);
+    res.setHeader(
+      "Content-Disposition",
+      'inline; filename="' + invoiceName + '"',
+    );
+    file.pipe(res);
   } catch (err) {
     next(err);
   }

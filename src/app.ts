@@ -59,6 +59,21 @@ if (!existsSync(imagesDir)) {
   console.log(`Created images directory at: ${imagesDir}`);
 }
 
+const dataDir = isProd
+  ? join(__dirname, "data") // dist/data in production
+  : join(process.cwd(), "src", "data"); // src/data in development
+
+if (!existsSync(dataDir)) {
+  mkdirSync(dataDir, { recursive: true });
+  console.log(`Created data directory at: ${dataDir}`);
+}
+
+const invoicesDir = join(dataDir, "invoices");
+if (!existsSync(invoicesDir)) {
+  mkdirSync(invoicesDir, { recursive: true });
+  console.log(`Created invoices directory at: ${invoicesDir}`);
+}
+
 const fileStorage = diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, imagesDir);

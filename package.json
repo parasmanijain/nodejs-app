@@ -26,6 +26,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^25.0.9",
     "@types/nodemailer": "^7.0.5",
+    "@types/pdfkit": "^0.17.4",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
@@ -47,6 +48,7 @@
     "multer": "^2.0.2",
     "nodemailer": "^7.0.12",
     "nodemailer-sendgrid-transport": "^0.2.0",
+    "pdfkit": "^0.17.2",
     "sass": "^1.97.2"
   }
 }
