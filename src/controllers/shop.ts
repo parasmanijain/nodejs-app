@@ -2,14 +2,26 @@ import { Request, Response, NextFunction } from "express";
 import { join } from "path";
 import { Types } from "mongoose";
 import { createWriteStream } from "fs";
+import dotenv from "dotenv";
 import PDFDocument from "pdfkit";
+import Stripe from "stripe";
 import { HttpError } from "../types/http-error";
 import { invoicesDir } from "../util/path";
-import { Product } from "../models/product";
+import { Product, ProductDocument } from "../models/product";
 import { Order } from "../models/order";
 import { CartItem } from "../models/user";
 
+dotenv.config();
+
+const { STRIPE_API_KEY } = process.env;
+
 const ITEMS_PER_PAGE = 2;
+
+// Interface for populated cart items
+interface PopulatedCartItem {
+  productId: ProductDocument;
+  quantity: number;
+}
 
 export const getProducts = async (
   req: Request,
@@ -290,5 +302,82 @@ export const getInvoice = async (
     pdfDoc.end();
   } catch (err) {
     next(err);
+  }
+};
+
+export const getCheckout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    if (!STRIPE_API_KEY || !req.user) return;
+    const stripe = new Stripe(STRIPE_API_KEY);
+    const user = await req.user.populate<{
+      cart: { items: PopulatedCartItem[] };
+    }>("cart.items.productId");
+    let total = 0;
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: user.cart.items.map((item: PopulatedCartItem) => {
+        total += item.quantity * item.productId.price;
+        return {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: item.productId.title,
+              description: item.productId.description,
+            },
+            unit_amount: item.productId.price * 100,
+          },
+          quantity: item.quantity,
+        };
+      }),
+      mode: "payment",
+      success_url: `${req.protocol}://${req.get("host")}/checkout/success`,
+      cancel_url: `${req.protocol}://${req.get("host")}/checkout/cancel`,
+    });
+    res.render("shop/checkout", {
+      path: "/checkout",
+      pageTitle: "Checkout",
+      products: user.cart.items,
+      totalSum: total,
+      sessionId: session.id,
+    });
+  } catch (err) {
+    const error: HttpError = new Error(String(err));
+    error.httpStatusCode = 500;
+    next(error);
+  }
+};
+
+export const getCheckoutSuccess = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    if (!req.user) return;
+    const user = await req.user.populate<{
+      cart: { items: PopulatedCartItem[] };
+    }>("cart.items.productId");
+    const products = user.cart.items.map((item: PopulatedCartItem) => ({
+      quantity: item.quantity,
+      product: item.productId.toObject(),
+    }));
+    const order = new Order({
+      user: {
+        email: req.user.email,
+        userId: req.user._id,
+      },
+      products,
+    });
+    await order.save();
+    await req.user.clearCart();
+    res.redirect("/orders");
+  } catch (err) {
+    const error: HttpError = new Error(String(err));
+    error.httpStatusCode = 500;
+    next(error);
   }
 };
