@@ -6,7 +6,6 @@ import {
   getEditProduct,
   getProducts,
   postAddProduct,
-  postDeleteProduct,
   postEditProduct,
 } from "../controllers/admin";
 
@@ -43,4 +42,4 @@ router.post(
   postEditProduct,
 );
 
-router.post("/delete-product", isAuth, postDeleteProduct);
+router.delete("/product/:productId", isAuth, deleteProduct);

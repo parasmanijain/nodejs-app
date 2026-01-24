@@ -208,37 +208,30 @@ export const getProducts = async (
   }
 };
 
-export const postDeleteProduct = async (
-  req: Request<{}, {}, { productId: string }>,
+export const deleteProduct = async (
+  req: Request<{ productId: string }>,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
-      res.redirect("/login");
+      res.status(401).json({ message: "Unauthorized" });
       return;
     }
-    const product = await Product.findById(req.body.productId);
+    const prodId = req.params.productId;
+    const product = await Product.findById(prodId);
     if (!product) {
-      return next(new Error("Product not found."));
-    }
-    if (product.userId.toString() !== req.user._id.toString()) {
-      res.redirect("/");
+      res.status(404).json({ message: "Product not found." });
       return;
     }
-    const imagePath = `${imagesDir}/${basename(product.imageUrl)}`;
-    deleteFile(imagePath);
+    deleteFile(product.imageUrl);
     await Product.deleteOne({
-      _id: req.body.productId,
+      _id: prodId,
       userId: req.user._id,
     });
     console.log("DESTROYED PRODUCT");
-    res.redirect("/admin/products");
+    res.status(200).json({ message: "Success!" });
   } catch (err) {
-    const error: HttpError = new Error(
-      err instanceof Error ? err.message : String(err),
-    );
-    error.httpStatusCode = 500;
-    next(error);
+    res.status(500).json({ message: "Deleting product failed." });
   }
 };
