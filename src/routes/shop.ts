@@ -10,6 +10,8 @@ import {
   postCart,
   postCartDeleteProduct,
   postOrder,
+  getCheckout,
+  getCheckoutSuccess,
 } from "../controllers/shop";
 
 export const router = Router();
@@ -31,3 +33,9 @@ router.post("/create-order", isAuth, postOrder);
 router.get("/orders", isAuth, getOrders);
 
 router.get("/orders/:orderId", isAuth, getInvoice);
+
+router.get("/checkout", isAuth, getCheckout);
+
+router.get("/checkout/success", getCheckoutSuccess);
+
+router.get("/checkout/cancel", getCheckout);

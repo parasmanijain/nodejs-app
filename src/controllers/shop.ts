@@ -293,12 +293,12 @@ export const getInvoice = async (
             " - " +
             prod.quantity +
             " x " +
-            "$" +
+            "₹" +
             prod.product.price,
         );
     });
     pdfDoc.text("---");
-    pdfDoc.fontSize(20).text("Total Price: $" + totalPrice);
+    pdfDoc.fontSize(20).text("Total Price: ₹" + totalPrice);
     pdfDoc.end();
   } catch (err) {
     next(err);
@@ -323,7 +323,7 @@ export const getCheckout = async (
         total += item.quantity * item.productId.price;
         return {
           price_data: {
-            currency: "usd",
+            currency: "inr",
             product_data: {
               name: item.productId.title,
               description: item.productId.description,
