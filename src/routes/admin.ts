@@ -8,6 +8,7 @@ import {
   postAddProduct,
   postEditProduct,
 } from "../controllers/admin";
+import { deleteProduct } from "../public/scripts/admin";
 
 export const router = Router();
 

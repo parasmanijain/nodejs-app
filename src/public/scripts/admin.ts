@@ -1,4 +1,4 @@
-const deleteProduct = (btn: HTMLButtonElement) => {
+export const deleteProduct = (btn: HTMLButtonElement) => {
   const parentNode = btn.parentNode as HTMLElement;
   if (!parentNode) {
     console.error("Button parent node not found");
