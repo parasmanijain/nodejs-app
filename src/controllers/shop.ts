@@ -9,17 +9,29 @@ import { Product } from "../models/product";
 import { Order } from "../models/order";
 import { CartItem } from "../models/user";
 
+const ITEMS_PER_PAGE = 2;
+
 export const getProducts = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const products = await Product.find();
+    const currentPage = req.query.page ? Number(req.query.page) : 1;
+    const totalItems = await Product.find().countDocuments();
+    const products = await Product.find()
+      .skip((currentPage - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE);
     res.render("shop/product-list", {
       prods: products,
       pageTitle: "All Products",
       path: "/products",
+      currentPage,
+      hasNextPage: ITEMS_PER_PAGE * currentPage < totalItems,
+      hasPreviousPage: currentPage > 1,
+      nextPage: currentPage + 1,
+      previousPage: currentPage - 1,
+      lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
     });
   } catch (err) {
     const error: HttpError = new Error(
@@ -57,16 +69,27 @@ export const getProduct = async (
 };
 
 export const getIndex = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const products = await Product.find();
+    const totalProducts = await Product.find().countDocuments();
+    const currentPage = req.query.page ? Number(req.query.page) : 1;
+    const products = await Product.find()
+      .skip((currentPage - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE);
     res.render("shop/index", {
       prods: products,
       pageTitle: "Shop",
       path: "/",
+      totalProducts,
+      currentPage,
+      hasNextPage: ITEMS_PER_PAGE * currentPage < totalProducts,
+      hasPreviousPage: currentPage > 1,
+      nextPage: currentPage + 1,
+      previousPage: currentPage - 1,
+      lastPage: Math.ceil(totalProducts / ITEMS_PER_PAGE),
     });
   } catch (err) {
     const error: HttpError = new Error(
