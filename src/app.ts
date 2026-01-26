@@ -1,13 +1,16 @@
-import express, { Response } from "express";
-import bodyParser from "body-parser";
+import express, {
+  Response,
+  static as express_static,
+  urlencoded,
+} from "express";
 import path from "path";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
 import { viewsPath } from "./util/path";
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(urlencoded({ extended: false }));
+app.use(express_static(path.join(__dirname, "public")));
 
 app.use(shopRoutes);
 app.use("/admin", adminRoutes);
