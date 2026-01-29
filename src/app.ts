@@ -6,8 +6,9 @@ import express, {
   NextFunction,
   ErrorRequestHandler,
 } from "express";
+import https from "https";
 import { join } from "path";
-import { mkdirSync, existsSync, createWriteStream } from "fs";
+import { mkdirSync, existsSync, createWriteStream, readFileSync } from "fs";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
 import session from "express-session";
@@ -57,6 +58,9 @@ const store = new MongoDBStore({
 });
 
 const csrfProtection = csrf();
+
+const privateKey = readFileSync("server.key");
+const certificate = readFileSync("server.cert");
 
 if (!existsSync(imagesDir)) {
   mkdirSync(imagesDir, { recursive: true });
@@ -169,9 +173,11 @@ async function startServer() {
   try {
     await connect(MONGO_URI);
     console.log("MongoDB connected");
-    app.listen(Number(PORT), () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    https
+      .createServer({ key: privateKey, cert: certificate }, app)
+      .listen(process.env.PORT || 3000, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
   } catch (err) {
     console.error("Failed to start server:", err);
   }
