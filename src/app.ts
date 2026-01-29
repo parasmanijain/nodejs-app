@@ -7,7 +7,7 @@ import express, {
   ErrorRequestHandler,
 } from "express";
 import { join } from "path";
-import { mkdirSync, existsSync } from "fs";
+import { mkdirSync, existsSync, createWriteStream } from "fs";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
 import session from "express-session";
@@ -15,6 +15,9 @@ import connectMongoDBSession from "connect-mongodb-session";
 import csrf from "csurf";
 import flash from "connect-flash";
 import multer, { diskStorage, Options } from "multer";
+import helmet from "helmet";
+import compression from "compression";
+import morgan from "morgan";
 import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
@@ -83,6 +86,14 @@ const fileFilter: Options["fileFilter"] = (_req, file, cb) => {
 
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
+
+const accessLogStream = createWriteStream(join(__dirname, "access.log"), {
+  flags: "a",
+});
+
+app.use(helmet());
+app.use(compression());
+app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(urlencoded({ extended: false }));
 app.use(multer({ storage: fileStorage, fileFilter }).single("image"));
