@@ -16,3 +16,10 @@ export const imagesDir = isProd
   : join(process.cwd(), "src", "images"); // src/images in development
 
 export const invoicesDir = join(dataDir, "invoices");
+
+export const logsDir =
+  process.env.NODE_ENV === "production"
+    ? join(__dirname) // dist/logs in prod
+    : join(process.cwd(), "src"); // src/logs in dev
+
+export const accessLogPath = join(logsDir, "access.log");

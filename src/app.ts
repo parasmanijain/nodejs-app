@@ -22,7 +22,13 @@ import { User } from "./models/user";
 import { router as adminRoutes } from "./routes/admin";
 import { router as shopRoutes } from "./routes/shop";
 import { router as authRoutes } from "./routes/auth";
-import { imagesDir, invoicesDir, viewsPath } from "./util/path";
+import {
+  logsDir,
+  imagesDir,
+  invoicesDir,
+  viewsPath,
+  accessLogPath,
+} from "./util/path";
 import { get404, get500 } from "./controllers/error";
 
 dotenv.config();
@@ -62,6 +68,10 @@ if (!existsSync(invoicesDir)) {
   console.log(`Created invoices directory at: ${invoicesDir}`);
 }
 
+const accessLogStream = createWriteStream(accessLogPath, {
+  flags: "a",
+});
+
 const fileStorage = diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, imagesDir);
@@ -86,10 +96,6 @@ const fileFilter: Options["fileFilter"] = (_req, file, cb) => {
 
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
-
-const accessLogStream = createWriteStream(join(__dirname, "access.log"), {
-  flags: "a",
-});
 
 app.use(helmet());
 app.use(compression());
