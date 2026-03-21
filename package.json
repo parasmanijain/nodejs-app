@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.3.5",
+    "@types/node": "^25.5.0",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
@@ -28,8 +28,8 @@
   },
   "dependencies": {
     "express": "^5.2.1",
-    "pug": "^3.0.3",
-    "sass": "^1.97.3"
+    "pug": "^3.0.4",
+    "sass": "^1.98.0"
   },
   "packageManager": "pnpm@10.30.3"
 }
