@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.3.5",
+    "@types/node": "^25.5.0",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
@@ -30,9 +30,9 @@
     "dotenv": "^17.3.1",
     "ejs": "^5.0.1",
     "express": "^5.2.1",
-    "mysql2": "^3.19.0",
-    "sass": "^1.97.3",
-    "sequelize": "^6.37.7"
+    "mysql2": "^3.20.0",
+    "sass": "^1.98.0",
+    "sequelize": "^6.37.8"
   },
   "packageManager": "pnpm@10.30.3"
 }
